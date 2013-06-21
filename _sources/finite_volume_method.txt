@@ -19,10 +19,10 @@ If we now use :math:`w` to represent the cell averages then we don't have to per
 Using linear interpolation (see the next section) to determine the fluxes at the cell faces,
 
 .. math::
-	\mathcal{F}_{j+\frac{1}{2}} = a_{j+\frac{1}{2}}\left( \frac{h_{j+1}}{2h_{+}} w_j + \frac{h_j}{2h_{+}} w_{j+1} \right) - d_{j+\frac{1}{2}} \frac{w_j - w_{j+1}}{h_{+}}
+	\mathcal{F}_{j+\frac{1}{2}} = a_{j+\frac{1}{2}}\left( \frac{h_{j+1}}{2h_{+}} w_j + \frac{h_j}{2h_{+}} w_{j+1} \right) - d_{j+\frac{1}{2}} \frac{w_{j+1}-w_j}{h_{+}}
 
 .. math::
-	\mathcal{F}_{j-\frac{1}{2}} = a_{j-\frac{1}{2}}\left( \frac{h_{j}}{2h_{-}} w_{j-1} + \frac{h_{j-1}}{2h_{-}} w_{j} \right) - d_{j-\frac{1}{2}} \frac{w_{j-1} - w_{j}}{h_{-}}
+	\mathcal{F}_{j-\frac{1}{2}} = a_{j-\frac{1}{2}}\left( \frac{h_{j}}{2h_{-}} w_{j-1} + \frac{h_{j-1}}{2h_{-}} w_{j} \right) - d_{j-\frac{1}{2}} \frac{w_{j}-w_{j-1}}{h_{-}}
 
 The meaning of the "h" terms is shown in the figure below,
 
@@ -36,7 +36,7 @@ The meaning of the "h" terms is shown in the figure below,
 Substituting the definition of the fluxes into the above equation yields,
 
 .. math::
-	w_j^{\prime} = \frac{w_{j-1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}}  - \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) + \frac{w_j}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} + 	\frac{d(x_{j-\frac{1}{2}})}{h_{-}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{w_{j+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
+	w_j^{\prime} = \frac{w_{j-1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) + \frac{w_j}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{w_{j+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
 
 This equation is the *semi-discrete* form.
 
@@ -76,7 +76,8 @@ This is a very elegant want to introduce adaptive upwinding or exponential fitti
 Naturally resolved Robin boundary conditions
 ********************************************
 
-Within the finite volume method Robin boundary conditions are naturally resolved. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell :math:`\Omega_1`,
+
+`Within the finite volume method Robin boundary conditions are naturally resolved <http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method>`_. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell :math:`\Omega_1`,
 
 .. figure:: img/boundary_cell_FVM.png
    :scale: 50 %
@@ -96,7 +97,7 @@ The Robin boundary condition specifies the flux at :math:`x_{1/2}`,
 Therefore the boundary condition can be incorporated without invoking any information regarding the ghost cell,
 
 .. math::
-	w_1^{\prime} = \frac{w_1}{h_1}\left( \frac{-a(x_{3/2})h_{2}}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) + \frac{w_{2}}{h_1} \left( \frac{-a(x_{3/2}) h_1}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) + \frac{g_{R}(x_L)}{h_1}
+	w_1^{\prime} = \frac{w_1}{h_1}\left( \frac{-a(x_{3/2})h_{2}}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) + \frac{w_{2}}{h_1} \left( \frac{-a(x_{3/2}) h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) + \frac{g_{R}(x_L)}{h_1} + \bar{s}_1
 
 Similarly applying the same procedure to the :math:`\Omega_J` cell at the right hand side boundary,
 
@@ -118,7 +119,7 @@ The Robin boundary condition at the right hand side is,
 Therefore the naturally resolved boundary condition on the right hand side becomes,
 
 .. math::
-	w_J^{\prime} = \frac{w_{J-1}}{h_J}\left( \frac{a(x_{J-1/2})h_{J}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) + \frac{w_{J}}{h_J} \left( \frac{a(x_{J-1/2}) h_{J-1}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) - \frac{g_{R}(x_R)}{h_J}
+	w_J^{\prime} = \frac{w_{J-1}}{h_J}\left( \frac{a(x_{J-1/2})h_{J}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) + \frac{w_{J}}{h_J} \left( \frac{a(x_{J-1/2}) h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) - \frac{g_{R}(x_R)}{h_J} + \bar{s}_J
 
 The :math:`\theta`-method
 *************************
@@ -137,21 +138,21 @@ In the above :math:`k` stands for the difference in time, the :math:`n+1` are th
 Defining the coefficients for the interior,
 
 .. math::
-	r_a & = \frac{k}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}}  - \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) \\
-	r_b & = \frac{k}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} + 	\frac{d(x_{j-\frac{1}{2}})}{h_{-}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right)\\
-	r_c & = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
+	r_a & = \frac{k}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}}  + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) \\
+	r_b & = \frac{k}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - \frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right)\\
+	r_c & = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
 
 the left hand side boundary,
 
 .. math::
-	\alpha_b = \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) \\
-	\alpha_c = \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right)
+	\alpha_b = \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) \\
+	\alpha_c = \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right)
 
 and the right hand side boundary,
 
 .. math::
-	\beta_a = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-	\beta_b = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right)
+	\beta_a = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
+	\beta_b = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right)
 
 
 The linear system including becomes,

@@ -152,8 +152,11 @@ and the right hand side boundary,
 
 .. math::
 	\beta_a = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-	\beta_b = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right)
+	\beta_b = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) \\
+	b_^R_1 = \frac{g_D(x_{L})}{h_1} \\
+	b_^R_J = \frac{g_D(x_{R})}{h_J}
 
+In the above $b_^R_1$ and $b_^R_J$ are the first and last element of the boundary condition vector added to the right hand side of the matrix equation.
 
 The linear system including becomes,
 

@@ -7,6 +7,8 @@ from scipy.sparse import linalg
 np.random.seed(seed=1)
 
 # Supporting functions
+gaussian = lambda z, height, position, hwhm: height * np.exp(-np.log(2) * ((z - position)/hwhm)**2)
+H = lambda z: 0.5 * (1 - np.sign(z))
 def check_index_within_bounds(i, min_i, max_i):
     """Checks that the index specified (can be number or an iterable) is within the given range."""
     success = np.all((i>=min_i)*(i<=max_i))
@@ -61,14 +63,14 @@ cells = 0.5 * (faces[0:-1] + faces[1:]) # Position of cell centroids
 J = len(cells)                  # Total number of cells
 L = np.max(faces) - np.min(faces)
 
-a = 0.1*np.ones(len(cells))     # Advection velocity
-#a = np.where( (cells > 0)*(cells<0.5), a, 0)
-d = 0.04*np.ones(len(cells))    # Diffusion coefficient
-k = 0.01                       # Time step 
+a = 0.0001*np.ones(len(cells))     # Advection velocity
+#a = a+gaussian(cells,0.05,0,0.2)
+d = 0.0001*np.ones(len(cells))    # Diffusion coefficient
+k = 1                       # Time step 
 theta = 0.5                     # Implicit/Explicit
 
 
-# Define mesh face and centroid spacings
+# Define width of cells (h) and forward (hp) and backwards (hm) distance between cell centers
 h = faces[1:] - faces[0:-1]
 def hm(i):
     if not check_index_within_bounds(i,1,J-1):
@@ -90,18 +92,26 @@ ap = lambda i: right_face(i, a, h, hp)
 
 
 # Diffusion coefficient on the cell faces
-dm = lambda i, kappa: h[i]/(2*hm(i))*d[i-1] + h[i-1]/(2*hm(i))*d[i] + 0.5 * kappa[i] * hm(i) * am(i)
-dp = lambda i, kappa: h[i+1]/(2*hp(i))*d[i] + h[i]/(2*hp(i))*d[i+1] + 0.5 * kappa[i] * hp(i) * ap(i)
+dm = lambda i, kappa: h[i]/(2*hm(i))*d[i-1] + h[i-1]/(2*hm(i))*d[i]# + 0.5 * kappa[i] * hm(i) * am(i)
+dp = lambda i, kappa: h[i+1]/(2*hp(i))*d[i] + h[i]/(2*hp(i))*d[i+1]# + 0.5 * kappa[i] * hp(i) * ap(i)
 
 # Check Peclet number and CFL condition
 mu = a * h / d
 CFL = a * k / h
-print "Peclet number", np.average(mu), np.max(mu)
-print "CFL condition", np.average(CFL), np.max(CFL)
-kappa = np.sign(a) * 0
+print "Peclet number", np.min(mu), np.max(mu)
+print "CFL condition", np.min(CFL), np.max(CFL)
 
-#kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu
-kappa = np.zeros(len(mu)) # Force central difference
+kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu;
+kappa[np.where(mu==0.0)] = 0
+kappa[np.where(np.isposinf(mu))] = 1
+kappa[np.where(np.isneginf(mu))] = -1
+#kappa[:] = 0
+d += 0.5 * a * h * kappa # Atificailly alter the diffusion coefficient to bring in upwinding
+print kappa
+
+# Initial conditions
+#w_init = gaussian(cells, 1, 0, 0.01)
+w_init = 0.005*H(cells)
 
 
 # Interior coefficients for matrix equation
@@ -120,7 +130,7 @@ betaa = k/h[J-1]*( am(J-1)*h[J-1]/(2*hm(J-1)) + dm(J-1,kappa)/hm(J-1) )
 betab = k/h[J-1]*( am(J-1)*h[J-2]/(2*hm(J-1)) - dm(J-1,kappa)/hm(J-1) )
 
 
-# Vector elements for Robin boundary condition
+# Vector elements for Robin boundary conditio
 gR_L, gR_R = (0, 0) # left and right Robin boundary values
 bL_R = k*gR_L/h[0]
 bR_R = k*gR_R/h[J-1]
@@ -147,8 +157,6 @@ bR_D = gD_R             # @ right boundary
 # betab_D = k/h[j]*( -am(j)*h[j-1]/(2*hm(j)) + 2*dp(j-1,kappa)/h[j] + dm(j,kappa)/hm(j) ) # NB dp(j) (dp @ right boundary), will not evaluate we need to interpolate to this value
 # betaa_D = k/h[j]*( -am(j)*h[j]/(2*hm(j)) - dm(j,kappa)/hm(j) )
 # bR_D = k*gD/h[j] * (ap(j-1) - 2*dp(j-1,kappa)/h[j] ) # NB ap(j) and dp(j) (ap and dp @ right boundary) will not evaluate we need to interpolate to this value
-
-
 # Pick which boundary conditions term you want and choose terms for the boundary condition vector
 
 # # Robin boundary conditions
@@ -228,16 +236,6 @@ def advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J):
 
 
 
-# Initial conditions
-gaussian = lambda z, height, position, hwhm: height * np.exp(-np.log(2) * ((z - position)/hwhm)**2)
-H = lambda z: 0.5 * (1 - np.sign(z))
-#w_init = gaussian(cells, 1, 0, 0.1)
-#w_init[0] = 0; w_init[-1] = 0
-w_init = H(cells)
-#w_init = np.where(w_init < 1e-5, 0, w_init)
-#pylab.plot(cells, w_init)
-#pylab.show()
-
 
 # Delete the work directory (for output files)
 import os, shutil
@@ -250,25 +248,16 @@ if os.path.exists(working_directory):
     else:
         print "Maybe the working directory %s is not safe to delete. Aborting."
 
-# Remake the working directory
+# Re-create the working directory
 if not os.path.exists(working_directory):
     os.makedirs(working_directory)
-
-
-# Time sweep
-w = w_init
-
-#b[0] = bL; b[-1] = bR
-# A = A_matrix_Robin_BCs(ra,rb,rc,alphab,alphac,betaa,betab,J)
-# M = M_matrix_Robin_BCs(ra,rb,rc,alphab,alphac,betaa,betab,J)
-#A = A_matrix_Dirichlet_BCs(ra,rb,rc,J)
 
 # Left are right corner values for Dirichlet BCs
 left_corner = (1,0,0); right_corner = (0,0,1)
 A = advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J)
 left_corner = (0,0,0); right_corner = (0,0,0)
 M = advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J)
-b = np.zeros(len(w))
+b = np.zeros(len(cells))
 b[0] = bL_D
 b[1] = bL1_D
 b[-2] = b1R_D
@@ -281,10 +270,14 @@ A = advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J)
 left_corner = (1+(1-theta)*alphab,(1-theta)*alphac,(1-theta)*ra(1)); 
 right_corner = ((1-theta)*rc(J-2), (1-theta)*betaa, 1+(1-theta)*betab)
 M = advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J)
-b = np.zeros(len(w))
+b = np.zeros(len(cells))
 b[0] = bL_R
 b[-1] = bR_R
 
+# Source term
+#b[int(np.median(range(len(cells))))] = 0.1
+
+# Analytical solution for Dirichlet boundary conditions
 #analytical_x = np.concatenate([np.array([0]), cells, np.array([1])])
 #analytical_solution = np.concatenate([np.array([1]), (np.exp(a/d) - np.exp(cells*a/d))/(np.exp(a/d)-1), np.array([0]) ])
 
@@ -302,12 +295,14 @@ b[-1] = bR_R
 # pylab.cla()
 #exit()
 
+w = w_init
 for i in range(4000):
     w = linalg.spsolve(A.tocsc(), M * w + b)
-    if i %  10 == 0 or i == 0:
-        pylab.ylim((0,2))
-        pylab.bar(faces[:-1], w, width=(faces[1:]-faces[:-1]), edgecolor='none')
+    if i %  200 == 0 or i == 0:
+        #pylab.ylim((0,0.07))
+        pylab.bar(faces[:-1], w, width=(faces[1:]-faces[:-1]), edgecolor='white')
         pylab.plot(cells, w, "k", lw=3)
+        pylab.plot(cells, a, "--g", lw=2)
         #pylab.plot(analytical_x, analytical_solution, "r-", lw=2)
         area = np.sum(w * h)
         print "#%d; area:" % (i,), area

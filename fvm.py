@@ -2,6 +2,7 @@ from __future__ import division
 import collections
 import numpy as np
 import pylab
+from scipy import sparse
 from scipy.sparse import linalg
 np.random.seed(seed=1)
 
@@ -21,7 +22,7 @@ def check_index_within_bounds(i, min_i, max_i):
     return False
 
 def covert_images_to_animated_gif(target_dir, filename="animation2.gif"):
-    from images2gif import writeGif
+    from visvis.vvmovie.images2gif import writeGif
     from PIL import Image
     import os
     
@@ -42,30 +43,33 @@ def covert_images_to_animated_gif(target_dir, filename="animation2.gif"):
         images.append(img)
         file_obj.close()
     #images.extend(reversed(images)) #infinit loop will go backwards and forwards.
-    writeGif(filename, images, duration=0.1)
+    if len(images)==0:
+        print "The image directory is empty. Could not create the gif."
+    else:
+        writeGif(filename, images, duration=0.2)
     
 
 
 
 
-
-#faces = np.linspace(-0.5,1,50)   # Position of cell faces
-faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-print faces
+left_face = lambda i, f, h, hm: h[i]/(2*hm(i))*f[i-1] + h[i-1]/(2*hm(i))*f[i] # Interpolation from cell to face values
+right_face = lambda i, f, h, hp: h[i+1]/(2*hp(i))*f[i] + h[i]/(2*hp(i))*f[i+1]
+    
+faces = np.linspace(-0.5,1,25)   # Position of cell faces
+#faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
 cells = 0.5 * (faces[0:-1] + faces[1:]) # Position of cell centroids
 J = len(cells)                  # Total number of cells
 L = np.max(faces) - np.min(faces)
+
 a = 0.1*np.ones(len(cells))     # Advection velocity
 #a = np.where( (cells > 0)*(cells<0.5), a, 0)
 d = 0.01*np.ones(len(cells))    # Diffusion coefficient
-k = 0.005                       # Time step 
+k = 0.01                       # Time step 
 theta = 0.5                     # Implicit/Explicit
 
 
 # Define mesh face and centroid spacings
-
 h = faces[1:] - faces[0:-1]
-
 def hm(i):
     if not check_index_within_bounds(i,1,J-1):
         raise ValueError("hm index runs out of bounds")
@@ -77,9 +81,8 @@ def hp(i):
     return cells[i+1] - cells[i]
 
 
-# Interpolation function from cell averages to face
-left_face = lambda i, f, h, hm: h[i]/(2*hm(i))*f[i-1] + h[i-1]/(2*hm(i))*f[i]
-right_face = lambda i, f, h, hp: h[i+1]/(2*hp(i))*f[i] + h[i]/(2*hp(i))*f[i+1]
+
+
 
 # Velocity on the cell faces
 am = lambda i: left_face(i, a, h, hm)
@@ -97,11 +100,8 @@ print "Peclet number", np.average(mu), np.max(mu)
 print "CFL condition", np.average(CFL), np.max(CFL)
 kappa = np.sign(a) * 0
 
-kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu
-kappa = np.zeros(len(mu))
-#kappa = np.where( np.isposinf(mu), 1, mu)
-#kappa = kappa * 0 + 0
-print "Adpative upwinding (kappa)", np.mean(kappa), kappa
+#kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu
+kappa = np.zeros(len(mu)) # Force central difference
 
 
 # Interior coefficients for matrix equation
@@ -123,53 +123,63 @@ gR_L, gR_R = (0, 0) # left and right Robin boundary value
 bL_R = k*gR_L/h[0]  # Vector elements for Robin boundary conditions
 bR_R = k*gR_R/h[J-1]
 
-# 
+
 # # Dirichlet boundary conditions, left hand side
 # gD = 0
-# alphab_D = k/h[0]*( -ap(0)*h[1]/(2*hp(0)) - dm(0,kappa)/h[0] - dp(1,kappa)/hp(0) ) # NB dm(0) will not evaluate we need to interpolate to this value
-# alphac_D = k/h[0]*( -ap(0)*h[0]/(2*hp(0)) + 2*dp(0)/hp(0) )
-# bL_D = k*gD/h[0] * (am(0) + 2*dm(0,kappa)/h[0] ) # NB am(0) and dm(0) will not evaluate we need to interpolate to this value
-# 
-# 
+# alphab_D = k/h[0]*( -ap(0)*h[1]/(2*hp(0)) - 2*dm(1,kappa)/h[0] - dp(0,kappa)/hp(0) ) # NB dm(0) will not evaluate we need to interpolate to this value
+# alphac_D = k/h[0]*( -ap(0)*h[0]/(2*hp(0)) + dp(0,kappa)/hp(0) )
+# bL_D = k*gD/h[0] * (am(1) + 2*dm(1,kappa)/h[0] ) # NB am(0) and dm(0) will not evaluate we need to interpolate to this value
+
+
 # # Dirichlet boundary conditions, right hand side
-# gD = 0
+# gD = 1
 # j = J-1
-# betab_D = k/h[j]*( -am(j)*h[j-1]/(2*hm(j)) + 2*dp(j,kappa)/h[j] + dm(j,kappa)/hm(j) ) # NB dp(j) (dp @ right boundary), will not evaluate we need to interpolate to this value
-# betaa_D = k/h[j]*( -am(j)*h[j]/(2*hm(j)) - 2*dm(j)/hm(j) )
-# bR_D = k*gD/h[j] * (ap(j) - 2*dp(j,kappa)/h[j] ) # NB ap(j) and dp(j) (ap and dp @ right boundary) will not evaluate we need to interpolate to this value
-# 
+# betab_D = k/h[j]*( -am(j)*h[j-1]/(2*hm(j)) + 2*dp(j-1,kappa)/h[j] + dm(j,kappa)/hm(j) ) # NB dp(j) (dp @ right boundary), will not evaluate we need to interpolate to this value
+# betaa_D = k/h[j]*( -am(j)*h[j]/(2*hm(j)) - dm(j,kappa)/hm(j) )
+# bR_D = k*gD/h[j] * (ap(j-1) - 2*dp(j-1,kappa)/h[j] ) # NB ap(j) and dp(j) (ap and dp @ right boundary) will not evaluate we need to interpolate to this value
+
+
+
+# Pick which boundary conditions term you want and choose terms for the boundary condition vector
+
+# Robin boundary conditions
+alphab, alphac = alphab_R, alphac_R
+betaa, betab = betaa_R, betab_R
+bL, bR = bL_R, bR_R
+
+# # Dirichlet boundary
+# alphab, alphac = alphab_D, alphac_D
+# betaa, betab = betaa_D, betab_D
+# bL, bR = bL_D, bR_D
 
 
 # Left hand side matrix using theta-method
-from scipy import sparse
-padding = np.array([0])
-inx = np.array(range(1,J-1))
-central = np.concatenate([np.array([1-theta*alphab_R]), 1-theta*rb(inx), np.array([1-theta*betab_R])])
-inx = np.array(range(1,J-1))
-lower = np.concatenate([-theta*ra(inx), np.array([-theta*betaa_R]), padding])
-inx = np.array(range(1,J-1))
-upper = np.concatenate([padding, np.array([-theta*alphac_R]), -theta*rc(inx)])
-diags = [-1,0,1]
-A = sparse.spdiags([lower, central, upper], diags, J, J)
+def A_matrix_Robin_BCs(ra, rb, rc, alphab, alphac, betaa, betab, J):
+    padding = np.array([0])
+    inx = np.array(range(1,J-1))
+    upper = np.concatenate([padding, np.array([-theta*alphac]), -theta*rc(inx)])
+    central = np.concatenate([np.array([1-theta*alphab]), 1-theta*rb(inx), np.array([1-theta*betab])])
+    lower = np.concatenate([-theta*ra(inx), np.array([-theta*betaa]), padding])
+    return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
 
 
 # Right hand side matrix using theta-method
-padding = np.array([0])
-inx = np.array(range(1,J-1))
-central = np.concatenate([np.array([1+(1-theta)*alphab_R]), 1+(1-theta)*rb(inx), np.array([1+(1-theta)*betab_R])])
-inx = np.array(range(1,J-1))
-lower = np.concatenate([(1-theta)*ra(inx), np.array([(1-theta)*betaa_R]), padding])
-inx = np.array(range(1,J-1))
-upper = np.concatenate([padding, np.array([(1-theta)*alphac_R]), (1-theta)*rc(inx)])
-diags = [-1,0,1]
-M = sparse.spdiags([lower, central, upper], diags, J, J)
+def M_matrix_Robin_BCs(ra, rb, rc, alphab, alphac, betaa, betab, J):
+    padding = np.array([0])
+    inx = np.array(range(1,J-1))
+    upper = np.concatenate([padding, np.array([(1-theta)*alphac]), (1-theta)*rc(inx)])
+    central = np.concatenate([np.array([1+(1-theta)*alphab]), 1+(1-theta)*rb(inx), np.array([1+(1-theta)*betab])])
+    lower = np.concatenate([(1-theta)*ra(inx), np.array([(1-theta)*betaa]), padding])
+    return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
+
 
 
 # Initial conditions
 gaussian = lambda z, height, position, hwhm: height * np.exp(-np.log(2) * ((z - position)/hwhm)**2)
 H = lambda z: 0.5 * (1 - np.sign(z))
-#w_init = gaussian(cells, 1, 0, 0.1)
-w_init = H(cells)
+w_init = gaussian(cells, 1, 0, 0.1)
+w_init[0] = 0; w_init[-1] = 0
+#w_init = H(cells)
 #w_init = np.where(w_init < 1e-5, 0, w_init)
 #pylab.plot(cells, w_init)
 #pylab.show()
@@ -193,14 +203,15 @@ if not os.path.exists(working_directory):
 
 # Time sweep
 w = w_init
-bR = np.zeros(len(w))
-bR[0] = bL_R
-bR[-1] = bR_R
+b = np.zeros(len(w))
+b[0] = bL; b[-1] = bR
+A = A_matrix_Robin_BCs(ra,rb,rc,alphab,alphac,betaa,betab,J)
+M = M_matrix_Robin_BCs(ra,rb,rc,alphab,alphac,betaa,betab,J)
 
-for i in range(5000):
-    w = linalg.spsolve(A.tocsc(), M * w + bR)
-    if i %  250 == 0 or i == 0:
-        pylab.ylim((0,5))
+for i in range(2000):
+    w = linalg.spsolve(A.tocsc(), M * w + b)
+    if i %  200 == 0 or i == 0:
+        pylab.ylim((0,2))
         pylab.bar(faces[:-1], w, width=(faces[1:]-faces[:-1]))
         pylab.plot(cells, w, "k", lw=3)
         area = np.sum(w * h)

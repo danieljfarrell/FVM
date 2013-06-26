@@ -56,155 +56,6 @@ def covert_images_to_animated_gif(target_dir, filename="animation2.gif"):
 
 left_face = lambda i, f, h, hm: h[i]/(2*hm(i))*f[i-1] + h[i-1]/(2*hm(i))*f[i] # Interpolation from cell to face values
 right_face = lambda i, f, h, hp: h[i+1]/(2*hp(i))*f[i] + h[i]/(2*hp(i))*f[i+1]
-    
-faces = np.linspace(-0.5,1,50)   # Position of cell faces
-#faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-cells = 0.5 * (faces[0:-1] + faces[1:]) # Position of cell centroids
-J = len(cells)                  # Total number of cells
-L = np.max(faces) - np.min(faces)
-
-a = 0.0001*np.ones(len(cells))     # Advection velocity
-#a = a+gaussian(cells,0.05,0,0.2)
-d = 0.0001*np.ones(len(cells))    # Diffusion coefficient
-k = 1                       # Time step 
-theta = 0.5                     # Implicit/Explicit
-
-
-# Define width of cells (h) and forward (hp) and backwards (hm) distance between cell centers
-h = faces[1:] - faces[0:-1]
-def hm(i):
-    if not check_index_within_bounds(i,1,J-1):
-        raise ValueError("hm index runs out of bounds")
-    return cells[i] - cells[i-1]
-
-def hp(i):
-    if not check_index_within_bounds(i,0,J-2):
-        raise ValueError("hp index runs out of bounds")
-    return cells[i+1] - cells[i]
-
-
-
-
-
-# Velocity on the cell faces
-am = lambda i: left_face(i, a, h, hm)
-ap = lambda i: right_face(i, a, h, hp)
-
-
-# Diffusion coefficient on the cell faces
-dm = lambda i, kappa: h[i]/(2*hm(i))*d[i-1] + h[i-1]/(2*hm(i))*d[i]# + 0.5 * kappa[i] * hm(i) * am(i)
-dp = lambda i, kappa: h[i+1]/(2*hp(i))*d[i] + h[i]/(2*hp(i))*d[i+1]# + 0.5 * kappa[i] * hp(i) * ap(i)
-
-# Check Peclet number and CFL condition
-mu = a * h / d
-CFL = a * k / h
-print "Peclet number", np.min(mu), np.max(mu)
-print "CFL condition", np.min(CFL), np.max(CFL)
-
-kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu;
-kappa[np.where(mu==0.0)] = 0
-kappa[np.where(np.isposinf(mu))] = 1
-kappa[np.where(np.isneginf(mu))] = -1
-#kappa[:] = 0
-d += 0.5 * a * h * kappa # Atificailly alter the diffusion coefficient to bring in upwinding
-print kappa
-
-# Initial conditions
-#w_init = gaussian(cells, 1, 0, 0.01)
-w_init = 0.005*H(cells)
-
-
-# Interior coefficients for matrix equation
-ra = lambda i: k/h[i]*(am(i)*h[i]/(2*hm(i)) + dm(i,kappa)/hm(i))
-rb = lambda i: k/h[i]*(am(i)*h[i-1]/(2*hm(i)) - ap(i)*h[i+1]/(2*hp(i)) - dm(i,kappa)/hm(i) - dp(i,kappa)/hp(i))
-rc = lambda i: k/h[i]*(-ap(i)*h[i]/(2*hp(i)) + dp(i,kappa)/hp(i))
-
-
-# Left hand side Robin boundary coefficients for matrix equation
-alphab = k/h[0]*( -ap(0)*h[1]/(2*hp(0)) - dp(0,kappa)/hp(0) )
-alphac = k/h[0]*( -ap(0)*h[0]/(2*hp(0)) + dp(0,kappa)/hp(0) )
-
-
-# Right hand side Robin boundary coefficients for matrix equation
-betaa = k/h[J-1]*( am(J-1)*h[J-1]/(2*hm(J-1)) + dm(J-1,kappa)/hm(J-1) )
-betab = k/h[J-1]*( am(J-1)*h[J-2]/(2*hm(J-1)) - dm(J-1,kappa)/hm(J-1) )
-
-
-# Vector elements for Robin boundary conditio
-gR_L, gR_R = (0, 0) # left and right Robin boundary values
-bL_R = k*gR_L/h[0]
-bR_R = k*gR_R/h[J-1]
-
-
-# Vector elements for Dirichlet boundary condition
-gD_L, gD_R = (1, 0)     # left and right Dirichlet boundary values
-bL_D = gD_L             # @ left boundary
-bL1_D = ra(1)*gD_L      # @ left boundary + 1
-b1R_D = rc(J-2)*gD_R    # @ right boundary - 1
-bR_D = gD_R             # @ right boundary
-
-
-# # Dirichlet boundary conditions, left hand side
-# gD = 0
-# alphab_D = k/h[0]*( -ap(0)*h[1]/(2*hp(0)) - 2*dm(1,kappa)/h[0] - dp(0,kappa)/hp(0) ) # NB dm(0) will not evaluate we need to interpolate to this value
-# alphac_D = k/h[0]*( -ap(0)*h[0]/(2*hp(0)) + dp(0,kappa)/hp(0) )
-# bL_D = k*gD/h[0] * (am(1) + 2*dm(1,kappa)/h[0] ) # NB am(0) and dm(0) will not evaluate we need to interpolate to this value
-
-
-# # Dirichlet boundary conditions, right hand side
-# gD = 1
-# j = J-1
-# betab_D = k/h[j]*( -am(j)*h[j-1]/(2*hm(j)) + 2*dp(j-1,kappa)/h[j] + dm(j,kappa)/hm(j) ) # NB dp(j) (dp @ right boundary), will not evaluate we need to interpolate to this value
-# betaa_D = k/h[j]*( -am(j)*h[j]/(2*hm(j)) - dm(j,kappa)/hm(j) )
-# bR_D = k*gD/h[j] * (ap(j-1) - 2*dp(j-1,kappa)/h[j] ) # NB ap(j) and dp(j) (ap and dp @ right boundary) will not evaluate we need to interpolate to this value
-# Pick which boundary conditions term you want and choose terms for the boundary condition vector
-
-# # Robin boundary conditions
-# alphab, alphac = alphab_R, alphac_R
-# betaa, betab = betaa_R, betab_R
-# bL, bR = bL_R, bR_R
-
-# Left and right hand side matrices using theta-method
-# def A_matrix_Robin_BCs(ra, rb, rc, alphab, alphac, betaa, betab, J):
-#     padding = np.array([0])
-#     inx = np.array(range(1,J-1))
-#     upper = np.concatenate([padding, np.array([-theta*alphac]), -theta*rc(inx)])
-#     central = np.concatenate([np.array([1-theta*alphab]), 1-theta*rb(inx), np.array([1-theta*betab])])
-#     lower = np.concatenate([-theta*ra(inx), np.array([-theta*betaa]), padding])
-#     return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
-
-# def M_matrix_Robin_BCs(ra, rb, rc, alphab, alphac, betaa, betab, J):
-#     padding = np.array([0])
-#     inx = np.array(range(1,J-1))
-#     upper = np.concatenate([padding, np.array([(1-theta)*alphac]), (1-theta)*rc(inx)])
-#     central = np.concatenate([np.array([1+(1-theta)*alphab]), 1+(1-theta)*rb(inx), np.array([1+(1-theta)*betab])])
-#     lower = np.concatenate([(1-theta)*ra(inx), np.array([(1-theta)*betaa]), padding])
-#     return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
-
-# def A_matrix_Dirichlet_BCs(ra, rb, rc, J):
-#     padding = np.array([0]) # A element which is pushed off the edge of the matrix by the spdiags function
-#     zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
-#     one  = np.array([1])    #
-#     inx = np.array(range(1,J-2))
-#     upper = np.concatenate([padding, zero, -theta*rc(inx), zero])
-#     inx = np.array(range(1,J-1))
-#     central = np.concatenate([one, 1-theta*rb(inx), one])
-#     inx = np.array(range(2,J-1))
-#     lower = np.concatenate([zero, -theta*ra(inx), zero, padding])
-#     return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
-
-# def M_matrix_Dirichlet_BCs(ra, rb, rc, J):
-#     padding = np.array([0]) # A element which is pushed off the edge of the matrix by the spdiags function
-#     zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
-#     one  = np.array([1])    #
-#     inx = np.array(range(1,J-2))
-#     upper = np.concatenate([padding, zero, (1-theta)*rc(inx), zero])
-#     inx = np.array(range(1,J-1))
-#     central = np.concatenate([zero, 1+(1-theta)*rb(inx), zero])
-#     inx = np.array(range(2,J-1))
-#     lower = np.concatenate([zero, (1-theta)*ra(inx), zero, padding])
-#     return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
-
 def advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J):
     padding = np.array([0]) # A element which is pushed off the edge of the matrix by the spdiags function
     zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
@@ -237,6 +88,98 @@ def advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J):
 
 
 
+
+
+
+
+
+faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
+#faces = np.linspace(-0.5,1,50)          # Position of cell faces
+cells = 0.5 * (faces[0:-1] + faces[1:]) # Position of cell centroids
+J = len(cells)                          # Total number of cells
+
+a = 0.001*np.ones(len(cells))  # Advection velocity
+d = 0.0001*np.ones(len(cells)) # Diffusion coefficient
+k = 1                          # Time step 
+theta = 0.5                    # Implicit/Explicit
+assert(theta>=0 and theta<=1, "theta is out of sensible range.")
+
+# Define width of cells (h) and forward (hp) and backwards (hm) distance between cell centers
+h = faces[1:] - faces[0:-1]
+def hm(i):
+    if not check_index_within_bounds(i,1,J-1):
+        raise ValueError("hm index runs out of bounds")
+    return cells[i] - cells[i-1]
+
+def hp(i):
+    if not check_index_within_bounds(i,0,J-2):
+        raise ValueError("hp index runs out of bounds")
+    return cells[i+1] - cells[i]
+
+
+
+
+
+
+
+# Velocity on the cell faces
+am = lambda i: left_face(i, a, h, hm)
+ap = lambda i: right_face(i, a, h, hp)
+
+# Diffusion coefficient on the cell faces
+dm = lambda i, kappa: left_face(i, d, h, hm)
+dp = lambda i, kappa: right_face(i, d, h, hp)
+
+# Check Peclet number and CFL condition
+mu = a * h / d
+CFL = a * k / h
+print "Peclet number", np.min(mu), np.max(mu)
+print "CFL condition", np.min(CFL), np.max(CFL)
+
+kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu;
+kappa[np.where(mu==0.0)] = 0
+kappa[np.where(np.isposinf(mu))] = 1
+kappa[np.where(np.isneginf(mu))] = -1
+d += 0.5 * a * h * kappa # Artificially alter the diffusion coefficient to bring in adaptive upwinding
+assert(np.any(kappa<-1) and np.any(kappa>1), "kappa is out side of sensible to range.")
+
+# Initial conditions
+#w_init = gaussian(cells, 1, 0, 0.01)
+w_init = 0.005*H(cells)
+
+
+# Interior coefficients for matrix equation
+ra = lambda i: k/h[i]*(am(i)*h[i]/(2*hm(i)) + dm(i,kappa)/hm(i))
+rb = lambda i: k/h[i]*(am(i)*h[i-1]/(2*hm(i)) - ap(i)*h[i+1]/(2*hp(i)) - dm(i,kappa)/hm(i) - dp(i,kappa)/hp(i))
+rc = lambda i: k/h[i]*(-ap(i)*h[i]/(2*hp(i)) + dp(i,kappa)/hp(i))
+
+
+# Left hand side Robin boundary coefficients for matrix equation
+alphab = k/h[0]*( -ap(0)*h[1]/(2*hp(0)) - dp(0,kappa)/hp(0) )
+alphac = k/h[0]*( -ap(0)*h[0]/(2*hp(0)) + dp(0,kappa)/hp(0) )
+
+
+# Right hand side Robin boundary coefficients for matrix equation
+betaa = k/h[J-1]*( am(J-1)*h[J-1]/(2*hm(J-1)) + dm(J-1,kappa)/hm(J-1) )
+betab = k/h[J-1]*( am(J-1)*h[J-2]/(2*hm(J-1)) - dm(J-1,kappa)/hm(J-1) )
+
+
+# Vector elements for Robin boundary condition
+gR_L, gR_R = (0, 0) # left and right Robin boundary values
+bL_R = k*gR_L/h[0]
+bR_R = k*gR_R/h[J-1]
+
+
+# Vector elements for Dirichlet boundary condition
+gD_L, gD_R = (1, 0)     # left and right Dirichlet boundary values
+bL_D = gD_L             # @ left boundary
+bL1_D = ra(1)*gD_L      # @ left boundary + 1
+b1R_D = rc(J-2)*gD_R    # @ right boundary - 1
+bR_D = gD_R             # @ right boundary
+
+
+
+
 # Delete the work directory (for output files)
 import os, shutil
 working_directory = os.path.join("/tmp", "output")
@@ -263,37 +206,24 @@ b[1] = bL1_D
 b[-2] = b1R_D
 b[-1] = bR_D
 
-# Left are right corner values for Robin BCs
-left_corner = (1-theta*alphab, -theta*alphac, -theta*ra(1)); 
-right_corner = (-theta*rc(J-2), -theta*betaa,1 - theta*betab)
-A = advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J)
-left_corner = (1+(1-theta)*alphab,(1-theta)*alphac,(1-theta)*ra(1)); 
-right_corner = ((1-theta)*rc(J-2), (1-theta)*betaa, 1+(1-theta)*betab)
-M = advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J)
-b = np.zeros(len(cells))
-b[0] = bL_R
-b[-1] = bR_R
+# Analytical solution for Dirichlet boundary conditions
+analytical_x = np.concatenate([np.array([0]), cells, np.array([1])])
+analytical_solution = np.concatenate([np.array([1]), (np.exp(a/d) - np.exp(cells*a/d))/(np.exp(a/d)-1), np.array([0]) ])
+
+
+# # Left are right corner values for Robin BCs
+# left_corner = (1-theta*alphab, -theta*alphac, -theta*ra(1)); 
+# right_corner = (-theta*rc(J-2), -theta*betaa,1 - theta*betab)
+# A = advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J)
+# left_corner = (1+(1-theta)*alphab,(1-theta)*alphac,(1-theta)*ra(1)); 
+# right_corner = ((1-theta)*rc(J-2), (1-theta)*betaa, 1+(1-theta)*betab)
+# M = advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J)
+# b = np.zeros(len(cells))
+# b[0] = bL_R
+# b[-1] = bR_R
 
 # Source term
-#b[int(np.median(range(len(cells))))] = 0.1
-
-# Analytical solution for Dirichlet boundary conditions
-#analytical_x = np.concatenate([np.array([0]), cells, np.array([1])])
-#analytical_solution = np.concatenate([np.array([1]), (np.exp(a/d) - np.exp(cells*a/d))/(np.exp(a/d)-1), np.array([0]) ])
-
-
-# import pylab
-# cmap = pylab.cm.Blues
-# pylab.matshow(A.todense(),cmap=cmap)
-# pylab.show()
-# pylab.cla()
-# pylab.matshow(M.todense(),cmap=cmap)
-# pylab.show()
-# pylab.cla()
-# pylab.matshow(np.matrix(b), cmap=cmap)
-# pylab.show()
-# pylab.cla()
-#exit()
+b[int(np.median(range(len(cells))))] = 0.0
 
 w = w_init
 for i in range(4000):
@@ -313,3 +243,7 @@ for i in range(4000):
 # Write the animated gif to the script directory
 pwd = os.path.join(os.path.dirname(os.path.realpath(__file__)))
 covert_images_to_animated_gif(working_directory, filename=os.path.join(pwd, "solution.gif") )
+
+    
+    
+    

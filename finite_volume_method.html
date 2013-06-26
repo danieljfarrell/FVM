@@ -64,7 +64,7 @@
 \[\mathcal{F}_{j-\frac{1}{2}} = a_{j-\frac{1}{2}}\left( \frac{h_{j}}{2h_{-}} w_{j-1} + \frac{h_{j-1}}{2h_{-}} w_{j} \right) - d_{j-\frac{1}{2}} \frac{w_{j}-w_{j-1}}{h_{-}}\]</div>
 <p>The meaning of the &#8220;h&#8221; terms is shown in the figure below,</p>
 <div class="figure align-center">
-<a class="reference internal image-reference" href="_images/cells_FVM.png"><img alt="Finite volume cells with important distances and positions labelled." src="_images/cells_FVM.png" /></a>
+<a class="reference internal image-reference" href="_images/cells_FVM.png"><img alt="Finite volume cells with important distances and positions labelled." src="_images/cells_FVM.png" style="width: 405.0px; height: 174.0px;" /></a>
 <p class="caption">Finite volume cells with important distances and positions labelled.</p>
 </div>
 <p>Substituting the definition of the fluxes into the above equation yields,</p>
@@ -75,10 +75,10 @@
 <h2>Adaptive upwinding &amp; exponential fitting<a class="headerlink" href="#adaptive-upwinding-exponential-fitting" title="Permalink to this headline">¶</a></h2>
 <p>Hundsdorfer (on pg. 266) notes that a adaptive upwinding scheme can be introduced by altering the diffusion coefficient,</p>
 <div class="math">
-\[d(x_{j\pm\frac{1}{2}}) \rightarrow d(x_{j\pm\frac{1}{2}}) + \frac{1}{2}\kappa_{\pm\frac{1}{2}} h_{\pm\frac{1}{2}} a_{j\pm\frac{1}{2}}\]</div>
+\[d(x_{j}) \rightarrow d(x_{j}) + \frac{1}{2}\kappa_{j} h_{j} a(x_{j})\]</div>
 <div class="math">
-\[\kappa_{\pm}=\text{sgn}(a(x_{j\pm\frac{1}{2}})).\]</div>
-<p>When <span class="math">\(\kappa=0\)</span> the discretisation reduces to central different and when <span class="math">\(\kappa=\pm1\)</span> the discretisation for the advection term becomes an upwind scheme. A generalisation is possible by choosing a function for <span class="math">\(\kappa\)</span> which automatically adjusts the discretisation method depending on the local value of Peclet&#8217;s number, <span class="math">\(\mu=ah/d\)</span>. Exponential fitting has shown to be a robust scheme for steady-state approaches. Exponential fitting can be introduced by,</p>
+\[\kappa=\text{sgn}(a(x_{j})).\]</div>
+<p>Here the nature of the discretisation is defined by the sign of the <span class="math">\(a\)</span>, when <span class="math">\(a\neq0\)</span> the scheme results in an upwind discretisation. Only if <span class="math">\(a=0\)</span> (corresponding to the diffusion equation limit) does the scheme become based on a central difference (see the red line in the Figure below). A generalisation is possible by choosing a function for <span class="math">\(\kappa\)</span> which automatically adjusts the discretisation method depending on the local value of Peclet&#8217;s number, <span class="math">\(\mu=ah/d\)</span>. Exponential fitting has shown to be a robust scheme for steady-state approaches. Exponential fitting can be introduced by,</p>
 <div class="math">
 \[\kappa = \frac{e^{\mu}+1}{e^{\mu}-1} - \frac{2}{\mu}\]</div>
 <p>An approximation to the above, which does not require the evaluation of exponentials is commonly used,</p>
@@ -88,7 +88,7 @@
 \text{min}(0, -1-2/\mu) &amp; \text{when}~ \mu&lt;0
 \end{cases}\end{split}\]</div>
 <div class="figure align-center">
-<a class="reference internal image-reference" href="_images/Exponential_fitting_and_approximation.png"><img alt="Exponential fitting and approximation" src="_images/Exponential_fitting_and_approximation.png" /></a>
+<a class="reference internal image-reference" href="_images/Exponential_fitting_and_approximation.png"><img alt="Exponential fitting and approximation" src="_images/Exponential_fitting_and_approximation.png" style="width: 459.0px; height: 283.0px;" /></a>
 </div>
 <p>This is a very elegant want to introduce adaptive upwinding or exponential fitting because it can be brought into the discretisation in an ad hoc manner. Note that for all of the adaptive expressions <span class="math">\(\kappa\rightarrow\pm1\)</span> as <span class="math">\(\mu\rightarrow\pm\infty\)</span>, and <span class="math">\(\kappa\rightarrow 0\)</span> as <span class="math">\(\mu\rightarrow 0\)</span>. This means the discretisation will automatically weight in the favour of the upwind scheme in locations where advection dominates. Conversely, where diffusion dominates the weighting factor shifts in favour of a central difference scheme.</p>
 </div>
@@ -96,7 +96,7 @@
 <h2>Naturally resolved Robin boundary conditions<a class="headerlink" href="#naturally-resolved-robin-boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method">Within the finite volume method Robin boundary conditions are naturally resolved</a>. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell <span class="math">\(\Omega_1\)</span>,</p>
 <div class="figure align-center">
-<a class="reference internal image-reference" href="_images/boundary_cell_FVM.png"><img alt="Finite volume boundary cell at the left hand side." src="_images/boundary_cell_FVM.png" /></a>
+<a class="reference internal image-reference" href="_images/boundary_cell_FVM.png"><img alt="Finite volume boundary cell at the left hand side." src="_images/boundary_cell_FVM.png" style="width: 333.0px; height: 192.0px;" /></a>
 <p class="caption">Finite volume boundary cell at the left hand side.</p>
 </div>
 <div class="math">
@@ -109,7 +109,7 @@
 \[w_1^{\prime} = \frac{w_1}{h_1}\left( \frac{-a(x_{3/2})h_{2}}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) + \frac{w_{2}}{h_1} \left( \frac{-a(x_{3/2}) h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) + \frac{g_{R}(x_L)}{h_1} + \bar{s}_1\]</div>
 <p>Similarly applying the same procedure to the <span class="math">\(\Omega_J\)</span> cell at the right hand side boundary,</p>
 <div class="figure align-center">
-<a class="reference internal image-reference" href="_images/boundary_cell_FVM_rhs.png"><img alt="Finite volume boundary cell at the right hand side." src="_images/boundary_cell_FVM_rhs.png" /></a>
+<a class="reference internal image-reference" href="_images/boundary_cell_FVM_rhs.png"><img alt="Finite volume boundary cell at the right hand side." src="_images/boundary_cell_FVM_rhs.png" style="width: 304.0px; height: 191.0px;" /></a>
 <p class="caption">Finite volume boundary cell at the right hand side.</p>
 </div>
 <div class="math">
@@ -129,28 +129,27 @@
 <p>In the above <span class="math">\(k\)</span> stands for the difference in time, the <span class="math">\(n+1\)</span> are the terms at the future time point, and <span class="math">\(n\)</span> terms are the current time point. The &#8220;<span class="math">\(r\)</span>&#8221; terms are the coefficients of the semi-discretised equation. Moving the unknowns to the left hand side,</p>
 <div class="math">
 \[w_j^{n+1} - \theta k r_a w_{j-1}^{n+1} - \theta k r_b w_{j}^{n+1} - \theta k r_c w_{j+1}^{n+1} = w_j^{n} + (1 - \theta) k r_a w_{j-1}^{n} + (1 - \theta) k r_b w_{j}^{n} + (1 - \theta) k r_c w_{j1}^{n} + k \bar{s}_j^n\]</div>
-<p>Defining the coefficients for the interior,</p>
+<p>Defining the coefficients for to include the time step,</p>
 <div class="math">
 \[\begin{split}r_a &amp; = \frac{k}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}}  + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) \\
 r_b &amp; = \frac{k}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - \frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right)\\
 r_c &amp; = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)\end{split}\]</div>
-<p>the left hand side boundary,</p>
+</div>
+<div class="section" id="discretised-equation-in-matrix-form">
+<h2>Discretised equation in matrix form<a class="headerlink" href="#discretised-equation-in-matrix-form" title="Permalink to this headline">¶</a></h2>
+<p>Here we present a general matrix equation,</p>
 <div class="math">
-\[\begin{split}\alpha_b = \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) \\
-\alpha_c = \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right)\end{split}\]</div>
-<p>and the right hand side boundary,</p>
-<div class="math">
-\[\begin{split}\beta_a = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-\beta_b = \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right)\end{split}\]</div>
-<p>The linear system including becomes,</p>
+\[\boldsymbol{A}\cdot\boldsymbol{w}^{n+1} = \boldsymbol{M}\cdot\boldsymbol{w}^{n} + \boldsymbol{s} + \boldsymbol{b}\]</div>
+<p>for the discretisation of the advection-diffusion equation that can be easily modified to include Robin or Dirichlet boundary conditions.</p>
+<p>Where the left hand side is,</p>
 <div class="math">
 \[\begin{split}\begin{align}
 \begin{pmatrix}
-1-\theta \alpha_b &amp; -\theta \alpha_c    &amp;        &amp;       &amp; 0   \\
--\theta r_a &amp; 1-\theta r_b    &amp; -\theta r_c    &amp;       &amp;     \\
+b_1 &amp; c_1    &amp;        &amp;       &amp; 0   \\
+a_2 &amp; 1-\theta r_b    &amp; -\theta r_c    &amp;       &amp;     \\
     &amp; \ddots &amp; \ddots &amp; \ddots&amp;     \\
-    &amp;        &amp;  - \theta r_a   &amp; 1-\theta r_b   &amp; -\theta r_c \\
- 0  &amp;        &amp;        &amp; -\theta \beta_a   &amp; 1-\theta \beta_b
+    &amp;        &amp;  - \theta r_a   &amp; 1-\theta r_b   &amp; c_{J-1} \\
+ 0  &amp;        &amp;        &amp; a_J   &amp; b_J
 \end{pmatrix}
 \begin{pmatrix}
     w_1^{n+1} \\
@@ -158,13 +157,17 @@ r_c &amp; = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac
     \vdots \\
     w_{J-1}^{n+1} \\
     w_J^{n+1} \\
-\end{pmatrix} =
+\end{pmatrix}
+\end{align}\end{split}\]</div>
+<p>and the right hand side,</p>
+<div class="math">
+\[\begin{split}\begin{align}
 \begin{pmatrix}
-1+(1-\theta)\alpha_b &amp; (1-\theta)\alpha_c    &amp;        &amp;       &amp; 0   \\
-(1-\theta)r_a &amp; 1+(1-\theta)r_b    &amp; (1-\theta)r_c    &amp;       &amp;     \\
+b_1 &amp; c_1   &amp;        &amp;       &amp; 0   \\
+a_2 &amp; 1+(1-\theta)r_b    &amp; (1-\theta)r_c    &amp;       &amp;     \\
     &amp; \ddots &amp; \ddots &amp; \ddots&amp;     \\
-    &amp;        &amp;  (1-\theta)r_a   &amp; 1+(1-\theta)r_b   &amp; (1-\theta)r_c \\
- 0  &amp;        &amp;        &amp; (1-\theta)\beta_a   &amp; 1+(1-\theta)\beta_b
+    &amp;        &amp;  (1-\theta)r_a   &amp; 1+(1-\theta)r_b   &amp; c_{J-1} \\
+ 0  &amp;        &amp;        &amp; a_J  &amp; b_J
 \end{pmatrix}
 \begin{pmatrix}
     w_1^n \\
@@ -174,14 +177,80 @@ r_c &amp; = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac
     w_J^n \\
 \end{pmatrix} + k
 \begin{pmatrix}
-    s_1^n + g_R(x_L)/h_1 \\
+    s_1^n \\
     s_2^n \\
     \vdots \\
     s_{J-1}^n \\
-    s_J^n - g_R(x_R)/h_J\\
+    s_J^n\\
+\end{pmatrix} +
+\begin{pmatrix}
+    c_1 \\ %k g_R(x_L)/h_1 \\
+    c_2 \\%0 \\
+    \vdots \\
+    c_{J-1} \\%0 \\
+    c_{J} \\%-k g_R(x_R)/h_J\\
 \end{pmatrix}
 \end{align}\end{split}\]</div>
-<p>Notice how the boundary conditions appear in the vector on the right hand side.</p>
+<p>Notice the terms in the top-left and bottom-right corners of the matrices have been modified, these are the terms that need to be changed to implement the boundary conditions. In addition to altering the matrix equation, a new vector as been introduced on the right hand side which carrier the boundary condition values.</p>
+</div>
+<div class="section" id="implementing-robin-boundary-conditions">
+<h2>Implementing Robin boundary conditions<a class="headerlink" href="#implementing-robin-boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p>To implement Robin boundary conditions the terms belonging to <span class="math">\(\boldsymbol{A}\)</span> become the following,</p>
+<div class="math">
+\[\begin{split}\begin{align}
+b_1 &amp; = 1 - \theta \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) \\
+c_1 &amp; = - \theta \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) \\
+a_2 &amp; = -\theta r_a \\
+c_{J-1} &amp; = -\theta r_c \\
+a_J &amp; = -\theta \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
+b_J &amp; = 1-\theta \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) \\
+\end{align}\end{split}\]</div>
+<p>The terms belonging to <span class="math">\(\boldsymbol{M}\)</span> become the following,</p>
+<div class="math">
+\[\begin{split}\begin{align}
+b_1 &amp; = 1 + (1 - \theta) \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) \\
+c_1 &amp; = (1 - \theta)\frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) \\
+a_2 &amp; = (1 - \theta) r_a \\
+c_{J-1} &amp; = (1 - \theta) r_c \\
+a_J &amp; = (1 - \theta)\frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
+b_J &amp; = 1 + (1 - \theta) \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) \\
+\end{align}\end{split}\]</div>
+<p>The elements of the boundary condition vector are all zero with the following exception,</p>
+<div class="math">
+\[\begin{split}c_1 = k\frac{g_D(x_{L})}{h_1} \\
+c_J = k\frac{g_D(x_{R})}{h_J}\end{split}\]</div>
+</div>
+<div class="section" id="implementing-dirichlet-boundary-conditions">
+<h2>Implementing Dirichlet boundary conditions<a class="headerlink" href="#implementing-dirichlet-boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p>To implement Dirichlet boundary conditions the terms belonging to <span class="math">\(A\)</span> become the following,</p>
+<div class="math">
+\[\begin{split}\begin{align}
+b_1 &amp; = 1 \\
+c_1 &amp; = 0 \\
+a_2 &amp; = 0 \\
+c_{J-1} &amp; = 0\\
+a_J &amp; = 0 \\
+b_J &amp; = 1 \\
+\end{align}\end{split}\]</div>
+<p>The terms belonging to <span class="math">\(M\)</span> become the following,</p>
+<div class="math">
+\[\begin{split}\begin{align}
+b_1 &amp; = 0 \\
+c_1 &amp; = 0 \\
+a_2 &amp; = 0 \\
+c_{J-1} &amp; = 0\\
+a_J &amp; = 0 \\
+b_J &amp; = 0 \\
+\end{align}\end{split}\]</div>
+<p>The elements of the boundary condition vector are all zero with the exception of the following elements,</p>
+<div class="math">
+\[\begin{split}\begin{align}
+c_1 &amp; = g_D(x_{L}) \\
+c_J &amp; = r_a g_D(x_{L}) \\
+c_{J-1} &amp; = r_c g_D(x_{R}) \\
+c_J &amp; = g_D(x_{R}) \\
+\end{align}\end{split}\]</div>
+<p><strong>NB</strong> it is <em>not</em> an error that the time step is <em>not</em> included in the boundary condition vector.</p>
 <div class="section" id="aside-linear-interpolation-between-cell-centre-and-face-values">
 <h3>Aside <span class="math">\(-\)</span> Linear interpolation between cell centre and face values<a class="headerlink" href="#aside-linear-interpolation-between-cell-centre-and-face-values" title="Permalink to this headline">¶</a></h3>
 <p>In general, linear interpolation between two points <span class="math">\((x_0, x_1)\)</span> can be used to find the value of a function at <span class="math">\(f(x)\)</span>,</p>
@@ -223,7 +292,10 @@ r_c &amp; = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac
 <li><a class="reference internal" href="#">The finite volume method</a><ul>
 <li><a class="reference internal" href="#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
 <li><a class="reference internal" href="#naturally-resolved-robin-boundary-conditions">Naturally resolved Robin boundary conditions</a></li>
-<li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a><ul>
+<li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
+<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
+<li><a class="reference internal" href="#implementing-robin-boundary-conditions">Implementing Robin boundary conditions</a></li>
+<li><a class="reference internal" href="#implementing-dirichlet-boundary-conditions">Implementing Dirichlet boundary conditions</a><ul>
 <li><a class="reference internal" href="#aside-linear-interpolation-between-cell-centre-and-face-values">Aside <span class="math">\(-\)</span> Linear interpolation between cell centre and face values</a></li>
 </ul>
 </li>

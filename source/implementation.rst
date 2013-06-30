@@ -53,7 +53,7 @@ The :code:`Mesh` class
 	def h(self, i):
 		...
 
-:code:`h()` returns the cell width for cell with index :code:`i`. This is non-vectorisable and should only be used for single index values. It is very easy to make mistakes with subscripts so that goal is was to be explicit with the value that is required. Access to the instance variable :code:`self.cell_widths` returns the numpy array of cell widths if access to all elements is required at once.
+:code:`h()` returns the cell width for cell with index :code:`i`. This is function is vectorisable by passing an array of the required indices but it *does not* accept "fancy indexing". The reason being, that it is very easy to make mistakes with subscript indexing, the goal here is to make the user be explicit when requesting elements. Note the :code:`self.cell_widths` instance variable returns the numpy array of cell widths is a second way of accessing this data.
 
 .. code:: python
 
@@ -94,7 +94,7 @@ The :code:`Model` class
 
 The model class is where the creating of the matrices occurs and where boundary conditions can be applied to the problem. For these reasons the class is fairly complicated.
 
-There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method :code:`_interior_functions()` returns **functions** which correspond to the lower, central and upper diagonals. For example, to calculate the interior matrix elements for mesh point :code:`i=4` one would do the following,
+There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method :code:`_interior_elements()` returns elements which correspond to the lower, central and upper diagonals for a specific index. For example, to calculate the interior matrix elements for mesh point :code:`i=4` one would do the following,
 
 .. code:: python
 

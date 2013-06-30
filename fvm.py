@@ -48,6 +48,7 @@ def covert_images_to_animated_gif(target_dir, filename="animation2.gif"):
     if len(images)==0:
         print "The image directory is empty. Could not create the gif."
     else:
+        print "writing gif"
         writeGif(filename, images, duration=0.2)
     
 
@@ -145,7 +146,7 @@ assert(np.any(kappa<-1) and np.any(kappa>1), "kappa is out side of sensible to r
 
 # Initial conditions
 #w_init = gaussian(cells, 1, 0, 0.01)
-w_init = 0.005*H(cells)
+w_init = 0.2*H(cells)
 
 
 # Interior coefficients for matrix equation
@@ -180,20 +181,20 @@ bR_D = gD_R             # @ right boundary
 
 
 
-# Delete the work directory (for output files)
-import os, shutil
-working_directory = os.path.join("/tmp", "output")
-if os.path.exists(working_directory):
-    # This is for safey, we will only ever delete folders in the tmp directory
-    dirs = os.path.split(working_directory)
-    if dirs[0] == "/tmp" and len(dirs)>1:
-        shutil.rmtree(working_directory)
-    else:
-        print "Maybe the working directory %s is not safe to delete. Aborting."
+# # Delete the work directory (for output files)
+# import os, shutil
+# working_directory = os.path.join("/tmp", "output")
+# if os.path.exists(working_directory):
+#     # This is for safey, we will only ever delete folders in the tmp directory
+#     dirs = os.path.split(working_directory)
+#     if dirs[0] == "/tmp" and len(dirs)>1:
+#         shutil.rmtree(working_directory)
+#     else:
+#         print "Maybe the working directory %s is not safe to delete. Aborting."
 
 # Re-create the working directory
-if not os.path.exists(working_directory):
-    os.makedirs(working_directory)
+# if not os.path.exists(working_directory):
+#     os.makedirs(working_directory)
 
 # Left are right corner values for Dirichlet BCs
 left_corner = (1,0,0); right_corner = (0,0,1)
@@ -206,44 +207,69 @@ b[1] = bL1_D
 b[-2] = b1R_D
 b[-1] = bR_D
 
-# Analytical solution for Dirichlet boundary conditions
-analytical_x = np.concatenate([np.array([0]), cells, np.array([1])])
-analytical_solution = np.concatenate([np.array([1]), (np.exp(a/d) - np.exp(cells*a/d))/(np.exp(a/d)-1), np.array([0]) ])
+# # Analytical solution for Dirichlet boundary conditions
+# analytical_x = np.concatenate([np.array([0]), cells, np.array([1])])
+# analytical_solution = np.concatenate([np.array([1]), (np.exp(a/d) - np.exp(cells*a/d))/(np.exp(a/d)-1), np.array([0]) ])
 
 
-# # Left are right corner values for Robin BCs
-# left_corner = (1-theta*alphab, -theta*alphac, -theta*ra(1)); 
-# right_corner = (-theta*rc(J-2), -theta*betaa,1 - theta*betab)
-# A = advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J)
-# left_corner = (1+(1-theta)*alphab,(1-theta)*alphac,(1-theta)*ra(1)); 
-# right_corner = ((1-theta)*rc(J-2), (1-theta)*betaa, 1+(1-theta)*betab)
-# M = advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J)
-# b = np.zeros(len(cells))
-# b[0] = bL_R
-# b[-1] = bR_R
+# Left are right corner values for Robin BCs
+left_corner = (1-theta*alphab, -theta*alphac, -theta*ra(1)); 
+right_corner = (-theta*rc(J-2), -theta*betaa,1 - theta*betab)
+A = advection_diffusion_A_matrix(ra, rb, rc, left_corner, right_corner, J)
+left_corner = (1+(1-theta)*alphab,(1-theta)*alphac,(1-theta)*ra(1)); 
+right_corner = ((1-theta)*rc(J-2), (1-theta)*betaa, 1+(1-theta)*betab)
+M = advection_diffusion_M_matrix(ra, rb, rc, left_corner, right_corner, J)
+b = np.zeros(len(cells))
+b[0] = bL_R
+b[-1] = bR_R
 
 # Source term
 b[int(np.median(range(len(cells))))] = 0.0
 
+# matplotlib for movie export
+# see, http://matplotlib.org/examples/animation/moviewriter.html
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.animation as manimation
+FFMpegWriter = manimation.writers['ffmpeg']
+metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
+writer = FFMpegWriter(fps=15, metadata=metadata)
+
+fig = plt.figure()
+l0, = plt.plot([],[], 'r-', lw=1)
+l1, = plt.plot([],[], 'k-o', markersize=4)
+l2, = plt.plot([],[], 'k|')
+l3, = plt.plot([],[], 'k|')
+
+plt.xlim(np.min(faces), np.max(faces))
+plt.ylim(0,1.1)
+
 w = w_init
-for i in range(4000):
-    w = linalg.spsolve(A.tocsc(), M * w + b)
-    if i %  200 == 0 or i == 0:
-        #pylab.ylim((0,0.07))
-        pylab.bar(faces[:-1], w, width=(faces[1:]-faces[:-1]), edgecolor='white')
-        pylab.plot(cells, w, "k", lw=3)
-        pylab.plot(cells, a, "--g", lw=2)
-        #pylab.plot(analytical_x, analytical_solution, "r-", lw=2)
-        area = np.sum(w * h)
-        print "#%d; area:" % (i,), area
-        pylab.title("Area: %g" % (area))
-        pylab.savefig(os.path.join(working_directory, "%d_solution.png" % i), dpi=72)
-        pylab.cla()
+with writer.saving(fig, "writer_test.mp4", 300):
+    for i in range(3001):
+        w = linalg.spsolve(A.tocsc(), M * w + b)
+        if i %  20 == 0 or i == 0:
+            #pylab.ylim((0,0.07))
+            #pylab.bar(faces[:-1], w, width=(faces[1:]-faces[:-1]), edgecolor='white')
+            #pylab.plot(cells, w, "k", lw=3)
+            l1.set_data(cells,w)
+            #l2.set_data(faces[0:-1], w)
+            #l3.set_data(faces[1:], w)
+            #l0.set_data(analytical_x, analytical_solution)
+            #pylab.plot(cells, a, "--g", lw=2)
+            #pylab.plot(analytical_x, analytical_solution, "r-", lw=2)
+            area = np.sum(w * h)
+            print "#%d; area:" % (i,), area
+            #fig.suptitle("Area: %g" % (area))
+            writer.grab_frame()
+            #pylab.savefig(os.path.join(working_directory, "%d_solution.png" % i), dpi=72)
 
 # Write the animated gif to the script directory
-pwd = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-covert_images_to_animated_gif(working_directory, filename=os.path.join(pwd, "solution.gif") )
+#import os
+#pwd = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+#covert_images_to_animated_gif("/tmp/output", filename=os.path.join(pwd, "solution.gif") )
 
-    
-    
+
+
     

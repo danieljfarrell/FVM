@@ -116,7 +116,9 @@ class Model(object):
             self.kappa[np.where(np.isposinf(mu))] = 1
             self.kappa[np.where(np.isneginf(mu))] = -1
         elif discretisation == "upwind":
-            self.kappa = np.ones(mesh.J)
+            self.kappa = np.zeros(mesh.J)
+            self.kappa[np.where(a>0)] = 1
+            self.kappa[np.where(a<0)] = -1
         elif discretisation == "central":
             self.kappa = np.zeros(mesh.J)
         else:
@@ -352,12 +354,12 @@ class Model(object):
         return b
 
 #faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-faces = np.linspace(-0.5, 1, 100)
+faces = np.linspace(0, 1, 50)
 mesh =  Mesh(faces)
 
-a = CellVariable(0.01, mesh=mesh) # Advection velocity
+a = CellVariable(1, mesh=mesh) # Advection velocity
 d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
-k = 1                             # Time step 
+k = 0.01                             # Time step 
 
 model = Model(faces, a, d, k, discretisation="exponential")
 model.set_boundary_conditions(left_value=1., right_value=0.)
@@ -372,6 +374,7 @@ print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition
 
 # Initial conditions
 w_init = 0.5*TH(mesh.cells, 0.4, 0)
+w_init = np.sin(np.pi*mesh.cells)**100
 
 # Source term
 b[int(np.median(range(mesh.J)))] = 0.0
@@ -391,7 +394,7 @@ fig = plt.figure()
 l0, = plt.plot([],[], 'r-', lw=1)
 l1, = plt.plot([],[], 'k-o', markersize=4)
 plt.xlim(np.min(faces), np.max(faces))
-plt.ylim(-0.2,1.1)
+plt.ylim(-0.2,1.2)
 l1.set_data(mesh.cells,w_init)
 
 # # Analytical solution for Dirichlet boundary conditions
@@ -402,18 +405,18 @@ analytical_solution = np.concatenate([np.array([model.left_value]), (np.exp(a/d)
 w = w_init
 with writer.saving(fig, "writer_test.mp4", 300):
     
-    for i in range(2000):
+    for i in range(201):
         w = linalg.spsolve(A.tocsc(), M * w + b)
         
         if  i == 0:
             l1.set_data(mesh.cells,w_init)
             writer.grab_frame()
             
-        if i %  50 == 0 or i == 0:
+        if i %  1 == 0 or i == 0:
             l1.set_data(mesh.cells,w)
             #l0.set_data(analytical_x, analytical_solution)
             area = np.sum(w * mesh.cell_widths)
-            print "#%d; area:" % (i,), area
+            print "#%d; t=%g; area=%g:" % (i, i*k,area)
             writer.grab_frame()
 
 

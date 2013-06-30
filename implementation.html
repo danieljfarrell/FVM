@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Solver implementation Python &mdash; FVM Docs 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="prev" title="The finite volume method" href="finite_volume_method.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="finite_volume_method.html" title="The finite volume method"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="solver-implementation-python">
+<h1>Solver implementation Python<a class="headerlink" href="#solver-implementation-python" title="Permalink to this headline">¶</a></h1>
+<p>Here we discuss how to implement a solver for the advection-diffusion equation in Python. The notes will consider how to design a solver which minimises code complexity and maximise readability.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>At a high-level usage of the code looks like the following,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Define a mesh</span>
+<span class="n">faces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="hll"><span class="n">mesh</span> <span class="o">=</span>  <span class="n">Mesh</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+</span>
+<span class="c"># Define coefficients</span>
+<span class="hll"><span class="n">a</span> <span class="o">=</span> <span class="n">CellVariable</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">)</span> <span class="c"># Advection velocity</span>
+</span><span class="hll"><span class="n">d</span> <span class="o">=</span> <span class="n">CellVariable</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="n">mesh</span><span class="p">)</span> <span class="c"># Diffusion coefficient</span>
+</span>
+<span class="c"># Make a &#39;model&#39; and apply boundary conditions</span>
+<span class="n">k</span> <span class="o">=</span> <span class="mi">1</span> <span class="c"># Time step</span>
+<span class="hll"><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+</span><span class="n">model</span><span class="o">.</span><span class="n">set_boundary_conditions</span><span class="p">(</span><span class="n">left_value</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">right_value</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+
+<span class="c"># Ask for the linear system...</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">A_matrix</span><span class="p">()</span>
+<span class="n">M</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">M_matrix</span><span class="p">()</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">b_vector</span><span class="p">()</span>
+
+<span class="c"># Solve...</span>
+</pre></div>
+</div>
+<p>There are a number of classes (highlighted above) which abstract away details of dealing with finite-volume equations:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><tt class="code docutils literal"><span class="pre">Mesh</span></tt></li>
+<li><tt class="code docutils literal"><span class="pre">CellVariable</span></tt></li>
+<li><tt class="code docutils literal"><span class="pre">Model</span></tt></li>
+</ol>
+</div></blockquote>
+<p>The the <tt class="code docutils literal"><span class="pre">Mesh</span></tt> and <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> classes have been inspired by the approach of <a class="reference external" href="http://www.ctcms.nist.gov/fipy/">Fipy</a>.</p>
+<p>In the following we will highlight the main features of each class and point out how they are useful. The classes do not attempt at doing &#8220;<em>too much</em>&#8221;, they simply aid in the creation of the linear system.</p>
+</div>
+<div class="section" id="the-mesh-class">
+<h2>The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class<a class="headerlink" href="#the-mesh-class" title="Permalink to this headline">¶</a></h2>
+<p><tt class="code docutils literal"><span class="pre">Mesh</span></tt> objects are initialised with a list of faces locations, which can be non-uniformly distributed if desired. A mesh is completely defined by locations of cell <strong>faces</strong>. Some useful methods,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p><tt class="code docutils literal"><span class="pre">h()</span></tt> returns the cell width for cell with index <tt class="code docutils literal"><span class="pre">i</span></tt>. This is non-vectorisable and should only be used for single index values. It is very easy to make mistakes with subscripts so that goal is was to be explicit with the value that is required. Access to the instance variable <tt class="code docutils literal"><span class="pre">self.cell_widths</span></tt> returns the numpy array of cell widths if access to all elements is required at once.</p>
+<div class="code python highlight-python"><pre>def hm(self, i):
+...</pre>
+</div>
+<p><tt class="code docutils literal"><span class="pre">hm()</span></tt> returns the distance between cell centroids for the cell at index <tt class="code docutils literal"><span class="pre">i</span></tt> and <tt class="code docutils literal"><span class="pre">i-1</span></tt>, that is in the <em>backwards</em> or <strong>minus</strong> direction.</p>
+<div class="code python highlight-python"><pre>def hp(self, i):
+...</pre>
+</div>
+<p>Similarly <tt class="code docutils literal"><span class="pre">hp()</span></tt> returns the distance between cell centroids for the cell at index <tt class="code docutils literal"><span class="pre">i</span></tt> and <tt class="code docutils literal"><span class="pre">i+1</span></tt>, that is in the <em>forwards</em> or <strong>plus</strong> direction.</p>
+<p>In addition to the above method, the class contains the instance variables, <tt class="code docutils literal"><span class="pre">self.cells</span></tt> which returns an array of cell centroid locations, <tt class="code docutils literal"><span class="pre">self.J</span></tt> which contains the number of cells, and also a copy of the face locations (an array) via <tt class="code docutils literal"><span class="pre">self.faces</span></tt>.</p>
+</div>
+<div class="section" id="the-cellvariable-class">
+<h2>The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class<a class="headerlink" href="#the-cellvariable-class" title="Permalink to this headline">¶</a></h2>
+<p>The goal of the <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class is to provide a elegant way of automatically interpolating between the cell value and the face value. The class holes values which correspond to the <strong>cell average</strong>. Internally, this class is a subclass of <tt class="code docutils literal"><span class="pre">numpy.ndarray</span></tt> so it is a fully functioning numpy array. It has a new constructor and additional method which return interpolated values at the cell surfaces.</p>
+<p>A <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> is initialised with a value for the cell average (this can be a constant or an array-like quantity) and the <tt class="code docutils literal"><span class="pre">Mesh</span></tt> on which the cell variable is defined. My coupling the cell variable with the mesh the class can perform interpolation between the cell and face values using the methods,</p>
+<div class="code python highlight-python"><pre>def p(self, i):
+...
+
+def m(self, i)
+...</pre>
+</div>
+<p>Again <tt class="code docutils literal"><span class="pre">self.p(i)</span></tt> stands for the <em>plus</em> direction and <tt class="code docutils literal"><span class="pre">self.m(i)</span></tt> stands for the <em>minus</em> direction, as such they return values at the right and left face of the cell. The mesh can be returned via the instance variable <tt class="code docutils literal"><span class="pre">cell_variable.mesh</span></tt>.</p>
+</div>
+<div class="section" id="the-model-class">
+<h2>The <tt class="code docutils literal"><span class="pre">Model</span></tt> class<a class="headerlink" href="#the-model-class" title="Permalink to this headline">¶</a></h2>
+<p>The model class is where the creating of the matrices occurs and where boundary conditions can be applied to the problem. For these reasons the class is fairly complicated.</p>
+<p>There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method <tt class="code docutils literal"><span class="pre">_interior_functions()</span></tt> returns <strong>functions</strong> which correspond to the lower, central and upper diagonals. For example, to calculate the interior matrix elements for mesh point <tt class="code docutils literal"><span class="pre">i=4</span></tt> one would do the following,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">ra</span><span class="p">,</span> <span class="n">rb</span><span class="p">,</span> <span class="n">rc</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_interior_functions</span><span class="p">()</span>
+<span class="s">&quot;index is i=4&quot;</span>
+<span class="n">ra</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="c"># lower diagonal function</span>
+<span class="n">ra</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="c"># central diagonal function</span>
+<span class="n">ra</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">d</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="c"># upper diagonal function</span>
+</pre></div>
+</div>
+<p>The function names here correspond to the matrix element in the previous section.</p>
+<p>Note that the function is prefixed with an underscore this is because a &#8216;users&#8217; should have no need to call this method. It is called internally when constructing the finite-volume matrices. However, an &#8216;author&#8217; does need to provide the correct matrix element with this function.</p>
+<p>The methods,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">_robin_boundary_condition_elements_left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_robin_boundary_condition_elements_right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_dirichlet_boundary_condition_elements_left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_dirichlet_boundary_condition_elements_right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>play a similar role. However the return a list of index-value pairs <tt class="code docutils literal"><span class="pre">([(1,1),</span> <span class="pre">a11],</span> <span class="pre">[(i,2),</span> <span class="pre">b12]</span> <span class="pre">...)</span></tt> rather than returning functions. The functions return the value of element which need to change (with respect to the interior values) in order include boundary conditions. The index-value pair facilitates automatic insertion of the values into the correct matrix element. As we will see later, rather than hard coding the position of the various element if the index and value are specified it makes the destination of the element unambiguous. It also allows the value of the matrix element to be defined at the same point in the code as the location. This is beneficial for providing context and should reduce bugs and complexity.</p>
+<p>Boundary conditions modify terms in the <span class="math">\(\boldsymbol{A}\)</span> and <span class="math">\(\boldsymbol{M}\)</span> matrices by they also require that a vector be added to the equations. The form of the linear system being solved is,</p>
+<div class="math">
+\[\boldsymbol{A} \cdot w^{n+1} = \boldsymbol{M} \cdot w^n = b\]</div>
+<p>where <span class="math">\(b\)</span> is a vector contains the boundary conditions values (and also values of the source term should it exist). The elements of <span class="math">\(b\)</span> are returned from the following methods,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">_robin_boundary_condition_vector_elements_left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_robin_boundary_condition_vector_elements_right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_dirichlet_boundary_condition_vector_elements_left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_dirichlet_boundary_condition_vector_elements_right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<p>Again, these method should return <em>index-values</em> pairs, but because the are element of a vector the index is simply a number, not a tuple as with the matrix elements.</p>
+<p>The <tt class="code docutils literal"><span class="pre">Model</span></tt> class also include some convenience function for checking the value of the Peclet number and the CFL conditions which can be called via,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">peclet_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">cell_widths</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span>
+
+<span class="k">def</span> <span class="nf">CFL_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">cell_widths</span>
+</pre></div>
+</div>
+<p>The method which are intended for the user to actually call when constructing the linear system are,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">A_martrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+             <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">M_martrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+             <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">b_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+             <span class="o">...</span>
+</pre></div>
+</div>
+<p>Which simply return the matrices and vector of the linear system.</p>
+<p>Finally, when initialising a <tt class="code docutils literal"><span class="pre">Model</span></tt> object two important keyword arguments can be passed, they are, <tt class="code docutils literal"><span class="pre">theta</span></tt> and <tt class="code docutils literal"><span class="pre">,</span> <span class="pre">discretisation</span></tt>. The value of <tt class="code docutils literal"><span class="pre">theta</span></tt> controls the time-integration method (setting <tt class="code docutils literal"><span class="pre">theta=0.5</span></tt> achieved a Crank-Nicolson trapezoidal integration in time), and the value of <tt class="code docutils literal"><span class="pre">discretisation</span></tt> can be one of the following: <tt class="code docutils literal"><span class="pre">'upwind',</span> <span class="pre">'central',</span> <span class="pre">'exponential'</span></tt>. The <tt class="code docutils literal"><span class="pre">upwind</span></tt> option uses the classic <em>first order upwind</em> discretisation, <tt class="code docutils literal"><span class="pre">central</span></tt> uses <em>second-order central</em> and setting to <tt class="code docutils literal"><span class="pre">exponential</span></tt> uses an adaptive scheme which will use weight between the central and upwind scheme depending on the local value of the Peclet number. This is the classic &#8216;exponential fitting&#8217; or &#8216;Scharfetter-Gummel&#8217; discretisation. <strong>N.B.</strong> Scharfetter-Gummel also refers to a method of solving the advection-diffusion equation is a non-coupled manner, this is not the case here where it only refers to the the discretisation method.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Solver implementation Python</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
+<li><a class="reference internal" href="#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
+<li><a class="reference internal" href="#the-model-class">The <tt class="code docutils literal"><span class="pre">Model</span></tt> class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="finite_volume_method.html"
+                        title="previous chapter">The finite volume method</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/implementation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="finite_volume_method.html" title="The finite volume method"
+             >previous</a> |</li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Daniel J Farrell.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

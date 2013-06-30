@@ -116,7 +116,9 @@ class Model(object):
             self.kappa[np.where(np.isposinf(mu))] = 1
             self.kappa[np.where(np.isneginf(mu))] = -1
         elif discretisation == "upwind":
-            self.kappa = np.ones(mesh.J)
+            self.kappa = np.zeros(mesh.J)
+            self.kappa[np.where(a>0)] = 1
+            self.kappa[np.where(a<0)] = -1
         elif discretisation == "central":
             self.kappa = np.zeros(mesh.J)
         else:

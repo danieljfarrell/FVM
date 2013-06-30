@@ -141,13 +141,13 @@ class Model(object):
         self.left_value = left_value
         self.right_value = right_value
         
-    def _interior_functions(self):
+    def _interior_elements(self, i):
         
         # Interior coefficients for matrix equation
         ra = lambda i, a, d, m, k: k/m.h(i)*(a.m(i)*m.h(i)/(2*m.hm(i)) + d.m(i)/m.hm(i))
         rb = lambda i, a, d, m, k: k/m.h(i)*(a.m(i)*m.h(i-1)/(2*m.hm(i)) - a.p(i)*m.h(i+1)/(2*m.hp(i)) - d.m(i)/m.hm(i) - d.p(i)/m.hp(i))
         rc = lambda i, a, d, m, k: k/m.h(i)*(-a.p(i)*m.h(i)/(2*m.hp(i)) + d.p(i)/m.hp(i))
-        return ra, rb, rc
+        return ra(i, self.a, self.d, self.mesh, self.k), rb(i, self.a, self.d, self.mesh, self.k), rc(i,self.a, self.d, self.mesh, self.k)
         
     def _robin_boundary_condition_elements_left(self, matrix=None):
         
@@ -224,17 +224,17 @@ class Model(object):
     
     def _dirichlet_boundary_condition_vector_elements_left(self):
         # Vector elements for Dirichlet boundary condition
-        ra, rb, rc = self._interior_functions()
+        ra, rb, rc = self._interior_elements(1)
         locations = [0,1]
-        values = [self.left_value, ra(1, self.a, self.d, self.mesh, self.k)*self.left_value]
+        values = [self.left_value, ra*self.left_value]
         return tuple([list(x) for x in zip(locations, values)])
         
     def _dirichlet_boundary_condition_vector_elements_right(self):
         # Vector elements for Dirichlet boundary condition
-        ra, rb, rc = self._interior_functions()
         J = self.mesh.J
+        ra, rb, rc = self._interior_elements(J-2)
         locations = [J-2, J-1]
-        values = [rc(J-2,self.a, self.d, self.mesh, self.k)*self.right_value, self.right_value]
+        values = [rc*self.right_value, self.right_value]
         return tuple([list(x) for x in zip(locations, values)])
         
     def A_matrix(self):
@@ -250,8 +250,6 @@ class Model(object):
         zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
         one  = np.array([1])    #
         
-        ra, rb, rc = self._interior_functions()
-        
         if self.left_flux is not None:
             left_bc_elements = self._robin_boundary_condition_elements_left(matrix="A")
         
@@ -266,16 +264,15 @@ class Model(object):
         
         # Use the functions to layout the matrix
         inx = np.array(range(1,J-1))
+        ra, rb, rc = self._interior_elements(inx)
         #                                 c1
-        upper = np.concatenate([padding, zero, -t*rc(inx, a, d, mesh, k) ]) 
+        upper = np.concatenate([padding, zero, -t*rc ]) 
         
-        inx = np.array(range(1,J-1))
-        #                          b1                               bJ
-        central = np.concatenate([zero, 1-t*rb(inx, a, d, mesh, k), zero  ]) 
+        #                          b1           bJ
+        central = np.concatenate([zero, 1-t*rb, zero  ]) 
         
-        inx = np.array(range(1,J-1))
-        #                                                  aJ
-        lower = np.concatenate([-t*ra(inx, a, d, mesh, k), zero , padding])
+        #                               aJ
+        lower = np.concatenate([-t*ra, zero , padding])
         
         A = sparse.spdiags([lower, central, upper], [-1,0,1], J, J).todok()
         
@@ -298,8 +295,6 @@ class Model(object):
         zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
         one  = np.array([1])    #
         
-        ra, rb, rc = self._interior_functions()
-        
         if self.left_flux is not None:
             left_bc_elements = self._robin_boundary_condition_elements_left(matrix="M")
         
@@ -314,16 +309,15 @@ class Model(object):
         
         # Use the functions to layout the matrix
         inx = np.array(range(1,J-1))
+        ra, rb, rc = self._interior_elements(inx)
         #                                 c1
-        upper = np.concatenate([padding, zero, (1-t)*rc(inx,a, d, mesh, k) ])
+        upper = np.concatenate([padding, zero, (1-t)*rc ])
         
-        inx = np.array(range(1,J-1))
-        #                          b1                                  bJ
-        central = np.concatenate([zero, 1+(1-t)*rb(inx,a, d, mesh, k), zero  ]) 
+        #                          b1               bJ
+        central = np.concatenate([zero, 1+(1-t)*rb, zero  ]) 
         
-        inx = np.array(range(1,J-1))
-        #                                                     aJ
-        lower = np.concatenate([(1-t)*ra(inx,a, d, mesh, k), zero , padding])
+        #                                   aJ
+        lower = np.concatenate([(1-t)*ra, zero , padding])
         
         A = sparse.spdiags([lower, central, upper], [-1,0,1], J, J).todok()
         

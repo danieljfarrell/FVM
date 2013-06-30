@@ -25,71 +25,6 @@ def check_index_within_bounds(i, min_i, max_i):
         print "Index is out of bounds.\ni=%s" % i
     return False
 
-def covert_images_to_animated_gif(target_dir, filename="animation2.gif"):
-    from visvis.vvmovie.images2gif import writeGif
-    from PIL import Image
-    import os
-    
-    file_names = sorted((os.path.join(target_dir, fn) for fn in os.listdir(target_dir) if fn.endswith('.png')))
-    # Numerical sort from file names
-    numbers = [float(os.path.basename(item).split("_")[0]) for item in file_names]
-    print numbers
-    sorted_indexes = np.argsort(numbers)
-    file_names = np.array(file_names)
-    sorted_file_names = file_names[sorted_indexes]
-    print sorted_file_names
-    #images = [Image.open(fn) for fn in sorted_file_names] # MacOS sets a limit for the number of files that can be open, this will break sometimes.
-    images = list()
-    for fn in sorted_file_names:
-        file_obj = open(fn, "rb")
-        img = Image.open(file_obj)
-        img.load()
-        images.append(img)
-        file_obj.close()
-    #images.extend(reversed(images)) #infinit loop will go backwards and forwards.
-    if len(images)==0:
-        print "The image directory is empty. Could not create the gif."
-    else:
-        print "writing gif"
-        writeGif(filename, images, duration=0.2)
-    
-
-
-
-
-left_face = lambda i, f, h, hm: h[i]/(2*hm(i))*f[i-1] + h[i-1]/(2*hm(i))*f[i] # Interpolation from cell to face values
-right_face = lambda i, f, h, hp: h[i+1]/(2*hp(i))*f[i] + h[i]/(2*hp(i))*f[i+1]
-def advection_diffusion_A_matrix(a, d, mesh, k, ra, rb, rc, left_corner, right_corner, J):
-    padding = np.array([0]) # A element which is pushed off the edge of the matrix by the spdiags function
-    zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
-    one  = np.array([1])    #
-    inx = np.array(range(1,J-2))
-    b1, c1, a2 = [np.array([item]) for item in left_corner]
-    c1J, aJ, bJ = [np.array([item]) for item in right_corner]
-    upper = np.concatenate([padding, c1, -theta*rc(inx,a, d, mesh, k), c1J])
-    inx = np.array(range(1,J-1))
-    central = np.concatenate([b1, 1-theta*rb(inx,a, d, mesh, k), bJ])
-    inx = np.array(range(2,J-1))
-    lower = np.concatenate([a2, -theta*ra(inx,a, d, mesh, k), aJ, padding])
-    return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
-
-def advection_diffusion_M_matrix(a, d, mesh, k, ra, rb, rc, left_corner, right_corner, J):
-    padding = np.array([0]) # A element which is pushed off the edge of the matrix by the spdiags function
-    zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
-    one  = np.array([1])    #
-    inx = np.array(range(1,J-2))
-    b1, c1, a2 = [np.array([item]) for item in left_corner]
-    c1J, aJ, bJ = [np.array([item]) for item in right_corner]
-    upper = np.concatenate([padding, c1, (1-theta)*rc(inx,a,d,mesh,k), c1J])
-    inx = np.array(range(1,J-1))
-    central = np.concatenate([b1, 1+(1-theta)*rb(inx,a,d,mesh,k),bJ])
-    inx = np.array(range(2,J-1))
-    lower = np.concatenate([a2, (1-theta)*ra(inx,a,d,mesh,k), aJ, padding])
-    return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
-
-
-
-
 
 class Mesh(object):
     """A 1D cell centered mesh defined by faces for the finite volume method."""
@@ -188,7 +123,7 @@ class Model(object):
             print "Please set `discretisation` to one of the following: `upwind`, `central` or `exponential`."
         
         # Artificially modify the diffusion coefficient to introduce adpative discretisation
-        self.d = self.d + 0.5 * self.a * self.kappa
+        self.d = self.d + 0.5 * self.a * self.mesh.cell_widths * self.kappa
     
     def peclet_number(self):
         return self.a * self.mesh.cell_widths / self.d
@@ -212,45 +147,93 @@ class Model(object):
         rc = lambda i, a, d, m, k: k/m.h(i)*(-a.p(i)*m.h(i)/(2*m.hp(i)) + d.p(i)/m.hp(i))
         return ra, rb, rc
         
-    def _robin_boundary_condition_elements_left(self):
+    def _robin_boundary_condition_elements_left(self, matrix=None):
+        
         # Left hand side Robin boundary coefficients for matrix equation
         b1 = lambda a, d, m, k: k/m.h(0)*(-a.p(0)*m.h(1)/(2*m.hp(0)) - d.p(0)/m.hp(0) )
         c1 = lambda a, d, m, k: k/m.h(0)*(-a.p(0)*m.h(0)/(2*m.hp(0)) + d.p(0)/m.hp(0) )
-        return b1(self.a, self.d, self.mesh, self.k), c1(self.a, self.d, self.mesh, self.k)
         
-    def _robin_boundary_condition_elements_right(self):
+        # Index and element value
+        if matrix == "A":
+            return [(0,0),1-self.theta*b1(self.a, self.d, self.mesh, self.k)], [(0,1),-self.theta*c1(self.a, self.d, self.mesh, self.k)]
+        elif matrix == "M":
+            return [(0,0),1+(1-self.theta)*b1(self.a, self.d, self.mesh, self.k)], [(0,1),(1-self.theta)*c1(self.a, self.d, self.mesh, self.k)]
+        else:
+            raise ValueError("Please choose a valid option for the `matrix` keyword, you can choose from `A` or `M`.")
+        
+    def _robin_boundary_condition_elements_right(self, matrix=None):
+        
         # Right hand side Robin boundary coefficients for matrix equation
         aJ = lambda a, d, m, k: k/m.h(m.J-1)*( a.m(m.J-1)*m.h(m.J-1)/(2*m.hm(m.J-1)) + d.m(m.J-1)/m.hm(m.J-1) )
         bJ = lambda a, d, m, k: k/m.h(m.J-1)*( a.m(m.J-1)*m.h(m.J-2)/(2*m.hm(m.J-1)) - d.m(m.J-1)/m.hm(m.J-1) )
-        return aJ(self.a, self.d, self.mesh, self.k), bJ(self.a, self.d, self.mesh, self.k)
+        J = self.mesh.J  # Index and element value
+        
+        # Index and element value
+        if matrix == "A":
+            locations = [(J-1,J-2), (J-1,J-1)]
+            values = [-self.theta*aJ(self.a, self.d, self.mesh, self.k), 1-self.theta*bJ(self.a, self.d, self.mesh, self.k)]
+            return tuple([list(x) for x in zip(locations, values)])
+        elif matrix == "M":
+            locations = [(J-1,J-2), (J-1,J-1)]
+            values = [(1-self.theta)*aJ(self.a, self.d, self.mesh, self.k), 1+(1-self.theta)*bJ(self.a, self.d, self.mesh, self.k)]
+            return tuple([list(x) for x in zip(locations, values)])
+        else:
+            raise ValueError("A valid option for `matrix` is `A` or `M`.")
+        
     
     def _robin_boundary_condition_vector_elements_left(self):
-        # Vector elements for Robin boundary condition
-        return self.k*self.left_flux/self.mesh.h(0), 0
+        # Index and boundary condition vector elements for Robin conditions
+        location = [0]
+        value = [self.k*self.left_flux/self.mesh.h(0)]
+        return tuple([list(x) for x in zip(location, value)])
         
     def _robin_boundary_condition_vector_elements_right(self):
-        # Vector elements for Robin boundary condition
-        return 0, self.k*self.right_flux/self.mesh.h(self.mesh.J-1)
+        # Index and boundary condition vector elements for Robin conditions
+        location = [self.mesh.J-1]
+        value = [self.k*self.right_flux/self.mesh.h(self.mesh.J-1)]
+        return tuple([list(x) for x in zip(location, value)])
     
-    def _dirichlet_boundary_condition_elements_left(self):
+    def _dirichlet_boundary_condition_elements_left(self, matrix=None):
         # Left hand side Dirichlet boundary coefficients for matrix equation
-        b1 = lambda a, d, m, k: k/m.h(0)*(-a.p(0)*m.h(1)/(2*m.hp(0)) - d.p(0)/m.hp(0) )
-        c1 = lambda a, d, m, k: k/m.h(0)*(-a.p(0)*m.h(0)/(2*m.hp(0)) + d.p(0)/m.hp(0) )
-        return b1(self.a, self.d, self.mesh, self.k), c1(self.a, self.d, self.mesh, self.k)
-        
-    def _dirichlet_boundary_condition_elements_right(self):
+        if matrix == "A":
+            locations = [(0,0), (0,1), (1,0)]
+            values = [1,0,0]
+            return tuple([list(x) for x in zip(locations, values)])
+        elif matrix == "M":
+            locations = [(0,0), (0,1), (1,0)]
+            values = [0,0,0]
+            return tuple([list(x) for x in zip(locations, values)])
+        else:
+            raise ValueError("Please choose a valid option for the `matrix` keyword, you can choose from `A` or `M`.")
+            
+    def _dirichlet_boundary_condition_elements_right(self, matrix=None):
         # Right hand side Dirichlet boundary coefficients for matrix equation
-        aJ = lambda a, d, m, k: k/m.h(m.J-1)*( a.m(m.J-1)*m.h(m.J-1)/(2*m.hm(m.J-1)) + d.m(m.J-1)/m.hm(m.J-1) )
-        bJ = lambda a, d, m, k: k/m.h(m.J-1)*( a.m(m.J-1)*m.h(m.J-2)/(2*m.hm(m.J-1)) - d.m(m.J-1)/m.hm(m.J-1) )
-        return aJ(self.a, self.d, self.mesh, self.k), bJ(self.a, self.d, self.mesh, self.k)
+        J = self.mesh.J
+        if matrix == "A":
+            locations = [(J-2,J-1), (J-1,J-2), (J-1,J-1)]
+            values = [0,0,1]
+            return tuple([list(x) for x in zip(locations, values)])
+        elif matrix == "M":
+            locations = [(J-2,J-1), (J-2,J-1), (J-1,J-1)]
+            values = [0,0,0]
+            return tuple([list(x) for x in zip(locations, values)])
+        else:
+            raise ValueError("Please choose a valid option for the `matrix` keyword, you can choose from `A` or `M`.")
     
     def _dirichlet_boundary_condition_vector_elements_left(self):
         # Vector elements for Dirichlet boundary condition
-        return self.k*self.left_flux/self.mesh.h(0), 0
+        ra, rb, rc = self._interior_functions()
+        locations = [0,1]
+        values = [self.left_value, ra(1, self.a, self.d, self.mesh, self.k)*self.left_value]
+        return tuple([list(x) for x in zip(locations, values)])
         
     def _dirichlet_boundary_condition_vector_elements_right(self):
         # Vector elements for Dirichlet boundary condition
-        return 0, self.k*self.right_flux/self.mesh.h(self.mesh.J-1)
+        ra, rb, rc = self._interior_functions()
+        J = self.mesh.J
+        locations = [J-2, J-1]
+        values = [rc(J-2,self.a, self.d, self.mesh, self.k)*self.right_value, self.right_value]
+        return tuple([list(x) for x in zip(locations, values)])
         
     def A_matrix(self):
         """Returns the coefficient matrix which appears on the left hand side."""
@@ -268,25 +251,37 @@ class Model(object):
         ra, rb, rc = self._interior_functions()
         
         if self.left_flux is not None:
-            b1, c1 = self._robin_boundary_condition_elements_left()
+            left_bc_elements = self._robin_boundary_condition_elements_left(matrix="A")
         
         if self.right_flux is not None:
-            aJ, bJ = self._robin_boundary_condition_elements_right()
+            right_bc_elements = self._robin_boundary_condition_elements_right(matrix="A")
         
         if self.left_value is not None:
-            raise NotImplementedError()
+            left_bc_elements = self._dirichlet_boundary_condition_elements_left(matrix="A")
         
         if self.right_value is not None:
-            raise NotImplementedError()
+            right_bc_elements = self._dirichlet_boundary_condition_elements_right(matrix="A")
         
         # Use the functions to layout the matrix
         inx = np.array(range(1,J-1))
-        upper = np.concatenate([padding, np.array([-t*c1]), -t*rc(inx,a, d, mesh, k) ])
+        #                                 c1
+        upper = np.concatenate([padding, zero, -t*rc(inx, a, d, mesh, k) ]) 
+        
         inx = np.array(range(1,J-1))
-        central = np.concatenate([np.array([1-t*b1]) , 1-t*rb(inx,a, d, mesh, k), np.array([1-t*bJ]) ])
+        #                          b1                               bJ
+        central = np.concatenate([zero, 1-t*rb(inx, a, d, mesh, k), zero  ]) 
+        
         inx = np.array(range(1,J-1))
-        lower = np.concatenate([-t*ra(inx,a, d, mesh, k), np.array([-t*aJ]) , padding])
-        return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
+        #                                                  aJ
+        lower = np.concatenate([-t*ra(inx, a, d, mesh, k), zero , padding])
+        
+        A = sparse.spdiags([lower, central, upper], [-1,0,1], J, J).todok()
+        
+        bcs = left_bc_elements + right_bc_elements
+        for inx, value in bcs:
+            A[inx] = value
+        
+        return A
         
     def M_matrix(self):
         """Returns the coefficient matrix which appears on the right hand side."""
@@ -304,73 +299,82 @@ class Model(object):
         ra, rb, rc = self._interior_functions()
         
         if self.left_flux is not None:
-            b1, c1 = self._robin_boundary_condition_elements_left()
+            left_bc_elements = self._robin_boundary_condition_elements_left(matrix="M")
         
         if self.right_flux is not None:
-            aJ, bJ = self._robin_boundary_condition_elements_right()
+            right_bc_elements = self._robin_boundary_condition_elements_right(matrix="M")
         
         if self.left_value is not None:
-            raise NotImplementedError()
+            left_bc_elements = self._dirichlet_boundary_condition_elements_left(matrix="M")
         
         if self.right_value is not None:
-            raise NotImplementedError()
+            right_bc_elements = self._dirichlet_boundary_condition_elements_right(matrix="M")
         
         # Use the functions to layout the matrix
         inx = np.array(range(1,J-1))
-        upper = np.concatenate([padding, np.array([(1-t)*c1]), (1-t)*rc(inx,a, d, mesh, k) ])
+        #                                 c1
+        upper = np.concatenate([padding, zero, (1-t)*rc(inx,a, d, mesh, k) ])
+        
         inx = np.array(range(1,J-1))
-        central = np.concatenate([np.array([1+(1-t)*b1]) , 1+(1-t)*rb(inx,a, d, mesh, k), np.array([1+(1-t)*bJ]) ])
+        #                          b1                                  bJ
+        central = np.concatenate([zero, 1+(1-t)*rb(inx,a, d, mesh, k), zero  ]) 
+        
         inx = np.array(range(1,J-1))
-        lower = np.concatenate([(1-t)*ra(inx,a, d, mesh, k), np.array([(1-t)*aJ]) , padding])
-        return sparse.spdiags([lower, central, upper], [-1,0,1], J, J)
+        #                                                     aJ
+        lower = np.concatenate([(1-t)*ra(inx,a, d, mesh, k), zero , padding])
+        
+        A = sparse.spdiags([lower, central, upper], [-1,0,1], J, J).todok()
+        
+        bcs = left_bc_elements + right_bc_elements
+        for inx, value in bcs:
+            A[inx] = value
+        return A
     
     def b_vector(self):
         """Returns the robin boundary condition vector."""
         b = np.zeros(self.mesh.J)
         
-        
         if self.left_flux is not None:
-            left_bc = self.left_flux
-            b1, b2 = self._robin_boundary_condition_vector_elements_left()
+            left_bc_elements = self._robin_boundary_condition_vector_elements_left()
         
         if self.right_flux is not None:
-            right_bc = self.left_flux
-            b1J, bJ = self._robin_boundary_condition_vector_elements_right()
+            right_bc_elements = self._robin_boundary_condition_vector_elements_right()
         
         if self.left_value is not None:
-            raise NotImplementedError()
+            left_bc_elements = self._dirichlet_boundary_condition_vector_elements_left()
         
         if self.right_value is not None:
-            raise NotImplementedError()
-            
-        b[0] = b1
-        b[1] = b2
-        b[-2] = b1J
-        b[-1] = bJ
+            right_bc_elements = self._dirichlet_boundary_condition_vector_elements_right()
+        
+        bcs = left_bc_elements + right_bc_elements
+        for inx, value in bcs:
+            b[inx] = value
         return b
 
 #faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-faces = np.linspace(-0.5, 1, 200)
+faces = np.linspace(-0.5, 1, 100)
 mesh =  Mesh(faces)
 
-#a = CellVariable(0.01*TH(mesh.cells, 0.1, 0), mesh=mesh)  # Advection velocity
-a = CellVariable(0.01, mesh=mesh)
-d = CellVariable(1e-4, mesh=mesh) # Diffusion coefficient
-k = 0.05                               # Time step 
+a = CellVariable(0.01, mesh=mesh) # Advection velocity
+d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
+k = 1                             # Time step 
 
 model = Model(faces, a, d, k, discretisation="exponential")
-model.set_boundary_conditions(left_flux=0., right_flux=0.)
+model.set_boundary_conditions(left_value=1., right_value=0.)
+#model.set_boundary_conditions(left_flux=0, right_flux=0)
+#model.set_boundary_conditions(left_value=1, right_flux=0)
 A = model.A_matrix()
 M = model.M_matrix()
 b = model.b_vector()
 
 print "Peclet number", np.min(model.peclet_number()), np.max(model.peclet_number())
 print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
+
 # Initial conditions
 w_init = 0.5*TH(mesh.cells, 0.4, 0)
 
 # Source term
-#b[int(np.median(range(mesh.J)))] = 0.01
+b[int(np.median(range(mesh.J)))] = 0.0
 
 # matplotlib for movie export
 # see, http://matplotlib.org/examples/animation/moviewriter.html
@@ -386,45 +390,31 @@ writer = FFMpegWriter(fps=15, metadata=metadata)
 fig = plt.figure()
 l0, = plt.plot([],[], 'r-', lw=1)
 l1, = plt.plot([],[], 'k-o', markersize=4)
-l2, = plt.plot([],[], 'k|')
-l3, = plt.plot([],[], 'k|')
-
 plt.xlim(np.min(faces), np.max(faces))
 plt.ylim(-0.2,1.1)
 l1.set_data(mesh.cells,w_init)
 
+# # Analytical solution for Dirichlet boundary conditions
+analytical_x = np.concatenate([np.array([np.min(faces)]), mesh.cells, np.array([np.max(faces)])])
+analytical_solution = np.concatenate([np.array([model.left_value]), (np.exp(a/d) - np.exp(mesh.cells*a/d))/(np.exp(a/d)-1), np.array([model.right_value]) ])
+#analytical_solution2 = np.concatenate([np.array([model.left_value]), (np.exp(a/model.d) - np.exp(mesh.cells*a/model.d))/(np.exp(a/model.d)-1), np.array([model.right_value]) ])
+
 w = w_init
 with writer.saving(fig, "writer_test.mp4", 300):
     
-    for i in range(200):
-        #b[-1] = w[-1] * -0.1
-        #b[int(np.median(range(mesh.J)))] = np.random.uniform(0.1,0)
+    for i in range(2000):
         w = linalg.spsolve(A.tocsc(), M * w + b)
         
         if  i == 0:
             l1.set_data(mesh.cells,w_init)
             writer.grab_frame()
             
-        if i %  1 == 0 or i == 0:
-            #pylab.ylim((0,0.07))
-            #pylab.bar(faces[:-1], w, width=(faces[1:]-faces[:-1]), edgecolor='white')
-            #pylab.plot(cells, w, "k", lw=3)
+        if i %  50 == 0 or i == 0:
             l1.set_data(mesh.cells,w)
-            #l2.set_data(faces[0:-1], w)
-            #l3.set_data(faces[1:], w)
             #l0.set_data(analytical_x, analytical_solution)
-            #pylab.plot(cells, a, "--g", lw=2)
-            #pylab.plot(analytical_x, analytical_solution, "r-", lw=2)
             area = np.sum(w * mesh.cell_widths)
             print "#%d; area:" % (i,), area
-            #fig.suptitle("Area: %g" % (area))
             writer.grab_frame()
-            #pylab.savefig(os.path.join(working_directory, "%d_solution.png" % i), dpi=72)
-
-# Write the animated gif to the script directory
-#import os
-#pwd = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-#covert_images_to_animated_gif("/tmp/output", filename=os.path.join(pwd, "solution.gif") )
 
 
 

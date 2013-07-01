@@ -133,6 +133,8 @@ html_static_path = ['_static']
 # typographically correct entities.
 #html_use_smartypants = True
 
+doctype = "<!DOCTYPE html>"
+
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}
 

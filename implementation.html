@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Solver implementation Python &mdash; FVM Docs 0.1 documentation</title>
+    <title>Solver implementation in Python &mdash; FVM Docs 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -46,8 +46,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="solver-implementation-python">
-<h1>Solver implementation Python<a class="headerlink" href="#solver-implementation-python" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="solver-implementation-in-python">
+<h1>Solver implementation in Python<a class="headerlink" href="#solver-implementation-in-python" title="Permalink to this headline">¶</a></h1>
 <p>Here we discuss how to implement a solver for the advection-diffusion equation in Python. The notes will consider how to design a solver which minimises code complexity and maximise readability.</p>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
@@ -91,7 +91,7 @@
         <span class="o">...</span>
 </pre></div>
 </div>
-<p><tt class="code docutils literal"><span class="pre">h()</span></tt> returns the cell width for cell with index <tt class="code docutils literal"><span class="pre">i</span></tt>. This is non-vectorisable and should only be used for single index values. It is very easy to make mistakes with subscripts so that goal is was to be explicit with the value that is required. Access to the instance variable <tt class="code docutils literal"><span class="pre">self.cell_widths</span></tt> returns the numpy array of cell widths if access to all elements is required at once.</p>
+<p><tt class="code docutils literal"><span class="pre">h()</span></tt> returns the cell width for cell with index <tt class="code docutils literal"><span class="pre">i</span></tt>. This is function is vectorisable by passing an array of the required indices but it <em>does not</em> accept &#8220;fancy indexing&#8221;. The reason being, that it is very easy to make mistakes with subscript indexing, the goal here is to make the user be explicit when requesting elements. Note the <tt class="code docutils literal"><span class="pre">self.cell_widths</span></tt> instance variable returns the numpy array of cell widths is a second way of accessing this data.</p>
 <div class="code python highlight-python"><pre>def hm(self, i):
 ...</pre>
 </div>
@@ -117,7 +117,7 @@ def m(self, i)
 <div class="section" id="the-model-class">
 <h2>The <tt class="code docutils literal"><span class="pre">Model</span></tt> class<a class="headerlink" href="#the-model-class" title="Permalink to this headline">¶</a></h2>
 <p>The model class is where the creating of the matrices occurs and where boundary conditions can be applied to the problem. For these reasons the class is fairly complicated.</p>
-<p>There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method <tt class="code docutils literal"><span class="pre">_interior_functions()</span></tt> returns <strong>functions</strong> which correspond to the lower, central and upper diagonals. For example, to calculate the interior matrix elements for mesh point <tt class="code docutils literal"><span class="pre">i=4</span></tt> one would do the following,</p>
+<p>There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method <tt class="code docutils literal"><span class="pre">_interior_elements()</span></tt> returns elements which correspond to the lower, central and upper diagonals for a specific index. For example, to calculate the interior matrix elements for mesh point <tt class="code docutils literal"><span class="pre">i=4</span></tt> one would do the following,</p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="n">ra</span><span class="p">,</span> <span class="n">rb</span><span class="p">,</span> <span class="n">rc</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_interior_functions</span><span class="p">()</span>
 <span class="s">&quot;index is i=4&quot;</span>
@@ -183,6 +183,13 @@ def m(self, i)
 <p>Which simply return the matrices and vector of the linear system.</p>
 <p>Finally, when initialising a <tt class="code docutils literal"><span class="pre">Model</span></tt> object two important keyword arguments can be passed, they are, <tt class="code docutils literal"><span class="pre">theta</span></tt> and <tt class="code docutils literal"><span class="pre">,</span> <span class="pre">discretisation</span></tt>. The value of <tt class="code docutils literal"><span class="pre">theta</span></tt> controls the time-integration method (setting <tt class="code docutils literal"><span class="pre">theta=0.5</span></tt> achieved a Crank-Nicolson trapezoidal integration in time), and the value of <tt class="code docutils literal"><span class="pre">discretisation</span></tt> can be one of the following: <tt class="code docutils literal"><span class="pre">'upwind',</span> <span class="pre">'central',</span> <span class="pre">'exponential'</span></tt>. The <tt class="code docutils literal"><span class="pre">upwind</span></tt> option uses the classic <em>first order upwind</em> discretisation, <tt class="code docutils literal"><span class="pre">central</span></tt> uses <em>second-order central</em> and setting to <tt class="code docutils literal"><span class="pre">exponential</span></tt> uses an adaptive scheme which will use weight between the central and upwind scheme depending on the local value of the Peclet number. This is the classic &#8216;exponential fitting&#8217; or &#8216;Scharfetter-Gummel&#8217; discretisation. <strong>N.B.</strong> Scharfetter-Gummel also refers to a method of solving the advection-diffusion equation is a non-coupled manner, this is not the case here where it only refers to the the discretisation method.</p>
 </div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Test video embedding...</p>
+<video width="320" height="240" controls>
+  <source src="img/uniform_grid.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video></div>
 </div>
 
 
@@ -193,11 +200,12 @@ def m(self, i)
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Solver implementation Python</a><ul>
+<li><a class="reference internal" href="#">Solver implementation in Python</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-model-class">The <tt class="code docutils literal"><span class="pre">Model</span></tt> class</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
 </ul>
 </li>
 </ul>

@@ -178,3 +178,19 @@ The method which are intended for the user to actually call when constructing th
 Which simply return the matrices and vector of the linear system.
 
 Finally, when initialising a :code:`Model` object two important keyword arguments can be passed, they are, :code:`theta` and :code:`, discretisation`. The value of :code:`theta` controls the time-integration method (setting :code:`theta=0.5` achieved a Crank-Nicolson trapezoidal integration in time), and the value of :code:`discretisation` can be one of the following: :code:`'upwind', 'central', 'exponential'`. The :code:`upwind` option uses the classic *first order upwind* discretisation, :code:`central` uses *second-order central* and setting to :code:`exponential` uses an adaptive scheme which will use weight between the central and upwind scheme depending on the local value of the Peclet number. This is the classic 'exponential fitting' or 'Scharfetter-Gummel' discretisation. **N.B.** Scharfetter-Gummel also refers to a method of solving the advection-diffusion equation is a non-coupled manner, this is not the case here where it only refers to the the discretisation method.
+
+Examples
+********
+
+Test video embedding...
+
+.. raw:: html
+
+	<video width="320" height="240" controls>
+	  <source src="img/uniform_grid.mp4" type="video/mp4">
+	Your browser does not support the video tag.
+	</video>
+
+	
+
+

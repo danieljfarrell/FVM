@@ -125,6 +125,8 @@ class Model(object):
         
         # Artificially modify the diffusion coefficient to introduce adpative discretisation
         self.d = self.d + 0.5 * self.a * self.mesh.cell_widths * self.kappa
+        print "Using kappa", np.min(self.kappa), np.max(self.kappa)
+        print self.kappa
     
     def peclet_number(self):
         return self.a * self.mesh.cell_widths / self.d

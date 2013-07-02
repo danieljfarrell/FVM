@@ -77,10 +77,9 @@ def hundsdorfer_examples(faces, export_filename="movie.mp4"):
     w2 = w_init
     w3 = w_init
     
-    #exit(1)
-    with writer.saving(fig, export_filename, 300):
-    
-        iters = 251
+    iters = 300
+    with writer.saving(fig, export_filename, iters):
+        
         for i in progress.bar(range(iters)):
             w1 = linalg.spsolve(A1.tocsc(), M1 * w1 + b1)
             w2 = linalg.spsolve(A2.tocsc(), M2 * w2 + b2)
@@ -102,8 +101,10 @@ def hundsdorfer_examples(faces, export_filename="movie.mp4"):
 
 if __name__ == '__main__':
     
+    print "Uniform grid"
     hundsdorfer_examples(np.linspace(0, 1, 50), export_filename="uniform_grid.mp4")
     faces = np.concatenate((np.array([0]), np.sort(np.random.uniform(0, 1, 48)), np.array([1])))
+    print "Random grid"
     hundsdorfer_examples(faces, export_filename="random_grid.mp4")
     def geo_series(n, r):
         total = 0
@@ -122,5 +123,6 @@ if __name__ == '__main__':
         return np.abs(series - 1)
         
     faces = geo_series(50, 0.15)
+    print "Nonuniform grid"
     hundsdorfer_examples(faces, export_filename="geometric_grid.mp4")
     

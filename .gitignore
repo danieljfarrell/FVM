@@ -6,6 +6,12 @@
 *.exe
 *.o
 *.so
+*.pyc
+
+# Bulky files #
+###############
+*.mp4
+*.gif
 
 # Packages #
 ############

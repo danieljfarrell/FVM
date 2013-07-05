@@ -17,7 +17,91 @@ discretisation scheme which combines an weighted averages the central and upwind
 approaches. The the Peclet number is large the discretisation is weighted in favor of\n\
 the upwind scheme, and when the Peclet number is low a central scheme is favored."
 
-
+def compare_upwind_and_central(faces, a, d, k, export_filename="movie.mp4"):
+    
+    log = "Comparison of central, upwind and exponential fitting schemes."
+    print log
+    central = Model(faces, a, d, k, discretisation="central")
+    central.set_boundary_conditions(left_value=0., right_value=0.)
+    A1 = central.A_matrix()
+    M1 = central.M_matrix()
+    b1 = central.b_vector()
+    
+    upwind = Model(faces, a, d, k, discretisation="upwind")
+    upwind.set_boundary_conditions(left_value=0., right_value=0.)
+    A2 = upwind.A_matrix()
+    M2 = upwind.M_matrix()
+    b2 = upwind.b_vector()
+    
+    # exponential = Model(faces, a, d, k, discretisation="exponential")
+    # exponential.set_boundary_conditions(left_value=1., right_value=0.)
+    # A3 = exponential.A_matrix()
+    # M3 = exponential.M_matrix()
+    # b3 = exponential.b_vector()
+    
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as manimation
+    print manimation.writers.__dict__
+    FFMpegWriter = manimation.writers['ffmpeg']
+    metadata = dict(title=log, artist='https://github.com/danieljfarrell/FVM', comment=comment)
+    writer = FFMpegWriter(fps=15, metadata=metadata)
+    
+    fig = plt.figure()
+    #l0, = plt.plot([],[], 'k-', lw=1)
+    l_central, = plt.plot([],[], 'r-o', label="central", markersize=6, alpha=0.5)
+    l_upwind, = plt.plot([],[], 'g-o', label="upwind", markersize=6, alpha=0.5)
+    #l_exp, = plt.plot([],[], 'b-o', label="exponential", markersize=6, alpha=0.5)
+    plt.xlim(-0.1, 1.1)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), fancybox=True, shadow=True, ncol=3)
+    plt.ylim(-0.2,1.2)
+    
+    # # Analytical solution for Dirichlet boundary conditions
+    mesh = central.mesh
+    analytical_x = np.linspace(0,1,2000)
+    import sympy
+    a_s, h_s, d_s= sympy.var("a h d")
+    f = (sympy.exp(a_s/d_s) - sympy.exp(a_s*h_s/d_s))/(sympy.exp(a_s/d_s)-1)
+    analytical_solution = [f.subs({a_s:a, d_s:d, h_s:x}) for x in analytical_x ]
+    analytical_solution = np.array(analytical_solution)
+    
+    w_init = np.sin(np.pi*mesh.cells)**100
+    w1 = w_init
+    w2 = w_init
+    w3 = w_init
+    
+    iters = 601 
+    with writer.saving(fig, export_filename, iters):
+        
+        import time
+        time.sleep(0.1)
+        for i in progress.bar(range(iters)):
+            w1 = linalg.spsolve(A1.tocsc(), M1 * w1 + b1)
+            w2 = linalg.spsolve(A2.tocsc(), M2 * w2 + b2)
+            #w3 = linalg.spsolve(A3.tocsc(), M3 * w3 + b3)
+            
+            if not np.any(np.isfinite(w1)):
+                print w1
+            
+            if not np.any(np.isfinite(w2)):
+                print w2
+                
+            if  i == 0:
+                l_central.set_data(mesh.cells, w_init)
+                l_upwind.set_data(mesh.cells, w_init)
+                #l_exp.set_data(mesh.cells, w_init)
+                #l0.set_data(analytical_x, analytical_solution)
+                writer.grab_frame()
+            
+            if i %  1  == 0 or i == 0:
+                l_central.set_data(mesh.cells, w1)
+                l_upwind.set_data(mesh.cells, w2)
+                #l_exp.set_data(mesh.cells, w3)
+                #l0.set_data(analytical_x, analytical_solution)
+                writer.grab_frame()
+                
 def hundsdorfer_examples(faces, export_filename="movie.mp4"):
     
     a = 1        # Advection velocity
@@ -125,4 +209,6 @@ if __name__ == '__main__':
     faces = geo_series(50, 0.15)
     print "Nonuniform grid"
     hundsdorfer_examples(faces, export_filename="geometric_grid.mp4")
+    
+    compare_upwind_and_central(np.linspace(0, 1, 50), 0, 1e-3, 0.01, export_filename="diffusion_only.mp4")
     

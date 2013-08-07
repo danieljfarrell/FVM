@@ -13,6 +13,7 @@ Contents:
    
    finite_volume_method.rst
    implementation.rst
+   poisson.rst
 
 
 

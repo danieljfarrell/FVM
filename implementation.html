@@ -25,6 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="next" title="The finite volume method applied to the Poisson equation" href="poisson.html" />
     <link rel="prev" title="The finite volume method" href="finite_volume_method.html" /> 
   </head>
   <body>
@@ -34,6 +35,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="poisson.html" title="The finite volume method applied to the Poisson equation"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="finite_volume_method.html" title="The finite volume method"
              accesskey="P">previous</a> |</li>
@@ -186,7 +190,7 @@ def m(self, i)
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
-<dt>For the following example parameters are,</dt>
+<dt>For the following example the analytical solution is plotted as the thin black line and the parameters are,</dt>
 <dd><ul class="first last simple">
 <li>a = 1</li>
 <li>d = 0.001</li>
@@ -196,7 +200,7 @@ def m(self, i)
 </ul>
 </dd>
 </dl>
-<p>with the Dirichlet boundary conditions, <span class="math">\(u(0,t)=1\)</span> and <span class="math">\(u(1,t)=0\)</span>, therefore we should expect a boundary layer to form near <span class="math">\(x=1\)</span>.</p>
+<p>Dirichlet boundary conditions, <span class="math">\(u(0,t)=1\)</span> and <span class="math">\(u(1,t)=0\)</span> and enforced as such should expect a boundary layer to form near <span class="math">\(x=1\)</span>.</p>
 <p><strong>Uniform grid</strong></p>
 <p>First we test the finite-volume method using a standard uniform grid. Note that the Peclet number for the above parameters is <span class="math">\(\mu=20\)</span> so the central discretisation scheme is not stable as illustrated by the oscillations in the solution. The upwind scheme does not have a stability criteria related to the Peclet number so the solutions for the <em>upwind</em> case are smooth. Finally, the <em>exponentially fitted</em> scheme has automatically weighted in favour of the upwind discretisation, the value of <span class="math">\(\kappa\approx\)</span> 0.9.</p>
 <div style="margin-top:10px;">
@@ -206,7 +210,7 @@ def m(self, i)
 <div style="margin-top:10px;">
       <iframe src="http://player.vimeo.com/video/69528243" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
 </div><p><strong>Nonuniform grid</strong></p>
-<p>Nonuniform grids can be used to reduce to <em>improve</em> the solution as shown here. The following simulation contains the same number of cells as the previous simulations however the cell centres are clustered towards the right hand boundary. The increased density of cells allow the boundary layer to be resolved. The transient solution computed from the <em>central</em> scheme is still significantly affected by the high Peclet number but it is interesting to observe that the steady-state solution of all three methods are very similar. Furthermore, <span class="math">\(\kappa\approx=0.01--0.1\)</span> in the region of the boundary layer which implies the local value of Peclet number as been reduced enough so allow the exponentially fitted scheme to weight in favour of the higher accuracy central discretisation.</p>
+<p>Nonuniform grids can be used to reduce to <em>improve</em> the solution as shown here. The following simulation contains the same number of cells as the previous simulations however the cell centres are clustered towards the right hand boundary. The increased density of cells allow the boundary layer to be resolved. The transient solution computed from the <em>central</em> scheme is still significantly affected by the high Peclet number but it is interesting to observe that the steady-state solution of all three methods are very similar. Furthermore, <span class="math">\(\kappa\approx0.01-0.1\)</span> in the region of the boundary layer which implies the local value of Peclet number as been reduced enough so allow the exponentially fitted scheme to weight in favour of the higher accuracy central discretisation.</p>
 <div style="margin-top:10px;">
       <iframe src="http://player.vimeo.com/video/69528242" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
 </div></div>
@@ -233,6 +237,9 @@ def m(self, i)
   <h4>Previous topic</h4>
   <p class="topless"><a href="finite_volume_method.html"
                         title="previous chapter">The finite volume method</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="poisson.html"
+                        title="next chapter">The finite volume method applied to the Poisson equation</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/implementation.txt"
@@ -261,6 +268,9 @@ def m(self, i)
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="poisson.html" title="The finite volume method applied to the Poisson equation"
+             >next</a> |</li>
         <li class="right" >
           <a href="finite_volume_method.html" title="The finite volume method"
              >previous</a> |</li>

@@ -182,14 +182,14 @@ Finally, when initialising a :code:`Model` object two important keyword argument
 Examples
 ********
 
-For the following example parameters are,
+For the following example the analytical solution is plotted as the thin black line and the parameters are,
  * a = 1
  * d = 0.001
  * The domain is between (0,1)
  * k = 0.01 (time step)
  * N = 50 (number of cells)
 
-with the Dirichlet boundary conditions, :math:`u(0,t)=1` and :math:`u(1,t)=0`, therefore we should expect a boundary layer to form near :math:`x=1`.
+Dirichlet boundary conditions, :math:`u(0,t)=1` and :math:`u(1,t)=0` and enforced as such should expect a boundary layer to form near :math:`x=1`.
 
 **Uniform grid**
 
@@ -213,7 +213,7 @@ Although a random grid is of no practical use it is a good test of the code beca
 
 **Nonuniform grid**
 
-Nonuniform grids can be used to reduce to *improve* the solution as shown here. The following simulation contains the same number of cells as the previous simulations however the cell centres are clustered towards the right hand boundary. The increased density of cells allow the boundary layer to be resolved. The transient solution computed from the *central* scheme is still significantly affected by the high Peclet number but it is interesting to observe that the steady-state solution of all three methods are very similar. Furthermore, :math:`\kappa\approx=0.01--0.1` in the region of the boundary layer which implies the local value of Peclet number as been reduced enough so allow the exponentially fitted scheme to weight in favour of the higher accuracy central discretisation. 
+Nonuniform grids can be used to reduce to *improve* the solution as shown here. The following simulation contains the same number of cells as the previous simulations however the cell centres are clustered towards the right hand boundary. The increased density of cells allow the boundary layer to be resolved. The transient solution computed from the *central* scheme is still significantly affected by the high Peclet number but it is interesting to observe that the steady-state solution of all three methods are very similar. Furthermore, :math:`\kappa\approx0.01-0.1` in the region of the boundary layer which implies the local value of Peclet number as been reduced enough so allow the exponentially fitted scheme to weight in favour of the higher accuracy central discretisation. 
 
 .. raw:: html
 

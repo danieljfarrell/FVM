@@ -16,7 +16,7 @@ If we now use :math:`w` to represent the cell averages then we don't have to per
 .. math::
 	w_j^{\prime} =  -\frac{\mathcal{F}_{j+1/2}}{h_j} + \frac{\mathcal{F}_{j-1/2}}{h_{j}} + \bar{s}_j
 
-Using linear interpolation (see the next section) to determine the fluxes at the cell faces,
+For the advection component of the flux we will use a linear interpolation (see the next section) to determine the contribution at the cell faces, and for the diffusion component with will use a simple cell average,
 
 .. math::
 	\mathcal{F}_{j+\frac{1}{2}} = a_{j+\frac{1}{2}}\left( \frac{h_{j+1}}{2h_{+}} w_j + \frac{h_j}{2h_{+}} w_{j+1} \right) - d_{j+\frac{1}{2}} \frac{w_{j+1}-w_j}{h_{+}}

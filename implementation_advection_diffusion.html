@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Solver implementation in Python &mdash; FVM Docs 0.1 documentation</title>
+    <title>Solving the advection-diffusion-reaction equation in Python &mdash; FVM Docs 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
-    <link rel="next" title="The finite volume method applied to the Poisson equation" href="poisson.html" />
-    <link rel="prev" title="The finite volume method" href="finite_volume_method.html" /> 
+    <link rel="prev" title="The Poisson equation" href="poisson.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,10 +35,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="poisson.html" title="The finite volume method applied to the Poisson equation"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="finite_volume_method.html" title="The finite volume method"
+          <a href="poisson.html" title="The Poisson equation"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -50,8 +46,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="solver-implementation-in-python">
-<h1>Solver implementation in Python<a class="headerlink" href="#solver-implementation-in-python" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="solving-the-advection-diffusion-reaction-equation-in-python">
+<h1>Solving the advection-diffusion-reaction equation in Python<a class="headerlink" href="#solving-the-advection-diffusion-reaction-equation-in-python" title="Permalink to this headline">¶</a></h1>
 <p>Here we discuss how to implement a solver for the advection-diffusion equation in Python. The notes will consider how to design a solver which minimises code complexity and maximise readability.</p>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
@@ -224,7 +220,7 @@ def m(self, i)
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Solver implementation in Python</a><ul>
+<li><a class="reference internal" href="#">Solving the advection-diffusion-reaction equation in Python</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
@@ -235,14 +231,11 @@ def m(self, i)
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="finite_volume_method.html"
-                        title="previous chapter">The finite volume method</a></p>
-  <h4>Next topic</h4>
   <p class="topless"><a href="poisson.html"
-                        title="next chapter">The finite volume method applied to the Poisson equation</a></p>
+                        title="previous chapter">The Poisson equation</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/implementation.txt"
+    <li><a href="_sources/implementation_advection_diffusion.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
@@ -269,10 +262,7 @@ def m(self, i)
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="poisson.html" title="The finite volume method applied to the Poisson equation"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="finite_volume_method.html" title="The finite volume method"
+          <a href="poisson.html" title="The Poisson equation"
              >previous</a> |</li>
         <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
       </ul>

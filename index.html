@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Notes on implemented the finite-volume method for the advection-diffusion equation &mdash; FVM Docs 0.1 documentation</title>
+    <title>Notes on implementing the finite-volume method of physical simulations &mdash; FVM Docs 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="#" />
-    <link rel="next" title="The finite volume method" href="finite_volume_method.html" /> 
+    <link rel="next" title="Introduction to the Finite Volume Method (FVM)" href="finite_volume_method.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,7 +35,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="finite_volume_method.html" title="The finite volume method"
+          <a href="finite_volume_method.html" title="Introduction to the Finite Volume Method (FVM)"
              accesskey="N">next</a> |</li>
         <li><a href="#">FVM Docs 0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -46,32 +46,35 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="notes-on-implemented-the-finite-volume-method-for-the-advection-diffusion-equation">
-<h1>Notes on implemented the finite-volume method for the advection-diffusion equation<a class="headerlink" href="#notes-on-implemented-the-finite-volume-method-for-the-advection-diffusion-equation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="notes-on-implementing-the-finite-volume-method-of-physical-simulations">
+<h1>Notes on implementing the finite-volume method of physical simulations<a class="headerlink" href="#notes-on-implementing-the-finite-volume-method-of-physical-simulations" title="Permalink to this headline">¶</a></h1>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="finite_volume_method.html">The finite volume method</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="finite_volume_method.html#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finite_volume_method.html#naturally-resolved-robin-boundary-conditions">Naturally resolved Robin boundary conditions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finite_volume_method.html#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finite_volume_method.html#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finite_volume_method.html#implementing-robin-boundary-conditions">Implementing Robin boundary conditions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="finite_volume_method.html#implementing-dirichlet-boundary-conditions">Implementing Dirichlet boundary conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finite_volume_method.html">Introduction to the Finite Volume Method (FVM)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advection_diffusion.html">The advection-diffusion-reaction equation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#naturally-resolved-robin-boundary-conditions">Naturally resolved Robin boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#implementing-robin-boundary-conditions">Implementing Robin boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#implementing-dirichlet-boundary-conditions">Implementing Dirichlet boundary conditions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="implementation.html">Solver implementation in Python</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="implementation.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="implementation.html#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="implementation.html#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="implementation.html#the-model-class">The <tt class="code docutils literal"><span class="pre">Model</span></tt> class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="implementation.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="poisson.html">The Poisson equation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="poisson.html#naturally-resolved-neumann-boundary-conditions">Naturally resolved Neumann boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poisson.html#dirichlet-boundary-conditions">Dirichlet boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poisson.html#poisson-equation-in-matrix-form">Poisson equation in matrix form</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="poisson.html">The finite volume method applied to the Poisson equation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="poisson.html#naturally-resolved-neumann-boundary-conditions">Naturally resolved Neumann boundary conditions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="poisson.html#dirichlet-boundary-conditions">Dirichlet boundary conditions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="poisson.html#poisson-equation-in-matrix-form">Poisson equation in matrix form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation_advection_diffusion.html">Solving the advection-diffusion-reaction equation in Python</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="implementation_advection_diffusion.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implementation_advection_diffusion.html#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implementation_advection_diffusion.html#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implementation_advection_diffusion.html#the-model-class">The <tt class="code docutils literal"><span class="pre">Model</span></tt> class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implementation_advection_diffusion.html#examples">Examples</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -92,7 +95,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Notes on implemented the finite-volume method for the advection-diffusion equation</a><ul>
+<li><a class="reference internal" href="#">Notes on implementing the finite-volume method of physical simulations</a><ul>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
@@ -100,7 +103,7 @@
 
   <h4>Next topic</h4>
   <p class="topless"><a href="finite_volume_method.html"
-                        title="next chapter">The finite volume method</a></p>
+                        title="next chapter">Introduction to the Finite Volume Method (FVM)</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -130,7 +133,7 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="finite_volume_method.html" title="The finite volume method"
+          <a href="finite_volume_method.html" title="Introduction to the Finite Volume Method (FVM)"
              >next</a> |</li>
         <li><a href="#">FVM Docs 0.1 documentation</a> &raquo;</li> 
       </ul>

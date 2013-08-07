@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The finite volume method applied to the Poisson equation &mdash; FVM Docs 0.1 documentation</title>
+    <title>The Poisson equation &mdash; FVM Docs 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,7 +25,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
-    <link rel="prev" title="Solver implementation in Python" href="implementation.html" /> 
+    <link rel="next" title="Solver implementation in Python" href="implementation.html" />
+    <link rel="prev" title="The advection-diffusion-reaction equation" href="advection_diffusion.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,6 +37,9 @@
              accesskey="I">index</a></li>
         <li class="right" >
           <a href="implementation.html" title="Solver implementation in Python"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="advection_diffusion.html" title="The advection-diffusion-reaction equation"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
       </ul>
@@ -46,12 +50,12 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="the-finite-volume-method-applied-to-the-poisson-equation">
-<h1>The finite volume method applied to the Poisson equation<a class="headerlink" href="#the-finite-volume-method-applied-to-the-poisson-equation" title="Permalink to this headline">¶</a></h1>
-<p>The advection-diffusion equation used in electrostatics is of the form,</p>
+  <div class="section" id="the-poisson-equation">
+<h1>The Poisson equation<a class="headerlink" href="#the-poisson-equation" title="Permalink to this headline">¶</a></h1>
+<p>The Poisson equation forms the basis of electrostatics and is of the form,</p>
 <div class="math">
 \[0 = (\epsilon(x) \phi_x)_x + \rho(x,t)\]</div>
-<p>where <span class="math">\(\phi\)</span> is the electric potential and the <span class="math">\(x\)</span> subscripts mean a spatial partial derivative. Note that this equation is reaction-diffusion equation with the diffusion flux <span class="math">\(\mathcal{F} = -\epsilon(x) \phi_x\)</span>. As with the advection-diffusion equation, this expression holds over the whole domain, therefore it must also hold over a subdomain <span class="math">\(\Omega_j=(x_{j-1/2}, x_{j+1/2})\)</span>. Integrating over the subdomain,</p>
+<p>where <span class="math">\(\phi\)</span> is the electric potential, <span class="math">\(\epsilon(x)\)</span> is the materials dielectric constant, <span class="math">\(\rho(x, t)\)</span> is a charge distribution (possibly varying with time), and the <span class="math">\(x\)</span> subscripts indicate a spatial partial derivative. Note that this equation is reaction-diffusion equation with the diffusion flux <span class="math">\(\mathcal{F} = -\epsilon(x) \phi_x\)</span>. As with the advection-diffusion equation, this expression holds over the whole domain, therefore it must also hold over a subdomain <span class="math">\(\Omega_j=(x_{j-1/2}, x_{j+1/2})\)</span>. Integrating over the subdomain,</p>
 <div class="math">
 \[0 = \int_{x_{j-1/2}}^{x_{j+1/2}} (\mathcal{-F})_x~dx + \int_{x_{j-1/2}}^{x_{j+1/2}} \rho(x,t)~dx\]</div>
 <p>The cell averaged values are therefore,</p>
@@ -59,15 +63,14 @@
 \[0 =  -\frac{\mathcal{F}_{j+1/2}}{h_j} + \frac{\mathcal{F}_{j-1/2}}{h_{j}} + \bar{\rho}_j\]</div>
 <p>To determine the flux at the cell faces we will take the mean of the fluxes in cells adjacent to the interfaces,</p>
 <div class="math">
-\[\mathcal{F}_{j+\frac{1}{2}} = - d_{j+\frac{1}{2}} \frac{\phi_{j+1}-\phi_j}{h_{+}}\]</div>
+\[\mathcal{F}_{j+\frac{1}{2}} = - \epsilon_{j+\frac{1}{2}} \frac{\phi_{j+1}-\phi_j}{h_{+}}\]</div>
 <div class="math">
-\[\mathcal{F}_{j-\frac{1}{2}} = - d_{j-\frac{1}{2}} \frac{\phi_{j}-\phi_{j-1}}{h_{-}}\]</div>
+\[\mathcal{F}_{j-\frac{1}{2}} = - \epsilon_{j-\frac{1}{2}} \frac{\phi_{j}-\phi_{j-1}}{h_{-}}\]</div>
 <p>Substituting the definition of the fluxes into the integrated equation and factoring for the electrical potential terms yields,</p>
 <div class="math">
 \[0 = \frac{\phi_{j-1}}{h_j} \left( \frac{\epsilon(x_{j-\frac{1}{2}})}{h_{-}}  \right) - \frac{\phi_{j}}{h_j} \left( \frac{\epsilon(x_{j-\frac{1}{2}})}{h_{-}} + \frac{\epsilon(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{\phi_{j+1}}{h_j} \left( \frac{\epsilon(x_{j+\frac{1}{2}})}{h_{+}} \right) + \bar{\rho}_j\]</div>
-</div>
 <div class="section" id="naturally-resolved-neumann-boundary-conditions">
-<h1>Naturally resolved Neumann boundary conditions<a class="headerlink" href="#naturally-resolved-neumann-boundary-conditions" title="Permalink to this headline">¶</a></h1>
+<h2>Naturally resolved Neumann boundary conditions<a class="headerlink" href="#naturally-resolved-neumann-boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <p>Neumann boundary conditions applied to the finite volume form of the Poisson equation are naturally resolved; that is to say that ghost cell or extrapolation approaches are not needed. Consider the integral form of the Poisson equation at the last cell of the domain on the right hand side,</p>
 <div class="math">
 \[0 = \frac{1}{h_J}\left( \epsilon(x_{R}) \phi_x\bigg|_{x=x_R} - \epsilon(x_{J-1/2}) \phi_x\bigg|_{J-1/2} \right) + \bar{\rho}_J\]</div>
@@ -79,19 +82,19 @@
 \[\frac{1}{h_J}\left( \epsilon(x_{R}) \sigma_R - \epsilon(x_{J-1/2}) \phi_x\bigg|_{J-1/2} \right) + \bar{\rho}_J\]</div>
 </div>
 <div class="section" id="dirichlet-boundary-conditions">
-<h1>Dirichlet boundary conditions<a class="headerlink" href="#dirichlet-boundary-conditions" title="Permalink to this headline">¶</a></h1>
+<h2>Dirichlet boundary conditions<a class="headerlink" href="#dirichlet-boundary-conditions" title="Permalink to this headline">¶</a></h2>
 <p>Fixed value, or Dirichlet, boundary conditions are not naturally resolved and can only be applied to the discretised form of the equation. We need to apply a Dirichlet condition to the left hand side, such that full equation for the cell <span class="math">\(j=1\)</span> reads,</p>
 <div class="math">
 \[\phi(x_L) = \omega_L\]</div>
 <p>Clearly, this is trivial as all that is required is fix the first row of the matrix equation to be the boundary condition.</p>
 </div>
 <div class="section" id="poisson-equation-in-matrix-form">
-<h1>Poisson equation in matrix form<a class="headerlink" href="#poisson-equation-in-matrix-form" title="Permalink to this headline">¶</a></h1>
-<p>Defining the coefficients,</p>
+<h2>Poisson equation in matrix form<a class="headerlink" href="#poisson-equation-in-matrix-form" title="Permalink to this headline">¶</a></h2>
+<p>Defining the (vector) coefficients,</p>
 <div class="math">
-\[\begin{split}\ell_a &amp; = \frac{1}{h_j}\frac{\epsilon(x_{j-1/2})}{h_{-}} \\
-\ell_b &amp; = -\frac{1}{h_j}\left( \frac{\epsilon_{j-1/2}}{h_{-}} + \frac{\epsilon_{j+1/2}}{h_{+}} \right) \\
-\ell_c &amp; = \frac{1}{h_j}\frac{\epsilon(x_{j+1/2})}{h+} \\\end{split}\]</div>
+\[\begin{split}\ell_a(j) &amp; = \frac{1}{h_j}\frac{\epsilon(x_{j-1/2})}{h_{-}} \\
+\ell_b(j) &amp; = -\frac{1}{h_j}\left( \frac{\epsilon_{j-1/2}}{h_{-}} + \frac{\epsilon_{j+1/2}}{h_{+}} \right) \\
+\ell_c(j) &amp; = \frac{1}{h_j}\frac{\epsilon(x_{j+1/2})}{h+} \\\end{split}\]</div>
 <p>With Dirichlet boundary condition on the left hand side and a Neumann boundary condition on the right hand side the Poisson equation can be written in matrix form,</p>
 <div class="math">
 \[\begin{split}\begin{align}
@@ -120,6 +123,7 @@
 = 0
 \end{align}\end{split}\]</div>
 </div>
+</div>
 
 
           </div>
@@ -129,15 +133,20 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">The finite volume method applied to the Poisson equation</a></li>
+<li><a class="reference internal" href="#">The Poisson equation</a><ul>
 <li><a class="reference internal" href="#naturally-resolved-neumann-boundary-conditions">Naturally resolved Neumann boundary conditions</a></li>
 <li><a class="reference internal" href="#dirichlet-boundary-conditions">Dirichlet boundary conditions</a></li>
 <li><a class="reference internal" href="#poisson-equation-in-matrix-form">Poisson equation in matrix form</a></li>
 </ul>
+</li>
+</ul>
 
   <h4>Previous topic</h4>
+  <p class="topless"><a href="advection_diffusion.html"
+                        title="previous chapter">The advection-diffusion-reaction equation</a></p>
+  <h4>Next topic</h4>
   <p class="topless"><a href="implementation.html"
-                        title="previous chapter">Solver implementation in Python</a></p>
+                        title="next chapter">Solver implementation in Python</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/poisson.txt"
@@ -168,6 +177,9 @@
              >index</a></li>
         <li class="right" >
           <a href="implementation.html" title="Solver implementation in Python"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="advection_diffusion.html" title="The advection-diffusion-reaction equation"
              >previous</a> |</li>
         <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
       </ul>

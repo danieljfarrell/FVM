@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Notes on implemented the finite-volume method for the advection-diffusion equation
-==================================================================================
+Notes on implementing the finite-volume method of physical simulations
+======================================================================
 
 Contents:
 
@@ -12,8 +12,9 @@ Contents:
    :maxdepth: 2
    
    finite_volume_method.rst
-   implementation.rst
+   advection_diffusion.rst
    poisson.rst
+   implementation_advection_diffusion.rst
 
 
 

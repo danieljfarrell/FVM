@@ -1,12 +1,12 @@
-The finite volume method applied to the Poisson equation
---------------------------------------------------------
+The Poisson equation
+--------------------
 
-The advection-diffusion equation used in electrostatics is of the form,
+The Poisson equation forms the basis of electrostatics and is of the form,
 
 .. math::
 	0 = (\epsilon(x) \phi_x)_x + \rho(x,t)
 
-where :math:`\phi` is the electric potential and the :math:`x` subscripts mean a spatial partial derivative. Note that this equation is reaction-diffusion equation with the diffusion flux :math:`\mathcal{F} = -\epsilon(x) \phi_x`. As with the advection-diffusion equation, this expression holds over the whole domain, therefore it must also hold over a subdomain :math:`\Omega_j=(x_{j-1/2}, x_{j+1/2})`. Integrating over the subdomain,
+where :math:`\phi` is the electric potential, :math:`\epsilon(x)` is the materials dielectric constant, :math:`\rho(x, t)` is a charge distribution (possibly varying with time), and the :math:`x` subscripts indicate a spatial partial derivative. Note that this equation is reaction-diffusion equation with the diffusion flux :math:`\mathcal{F} = -\epsilon(x) \phi_x`. As with the advection-diffusion equation, this expression holds over the whole domain, therefore it must also hold over a subdomain :math:`\Omega_j=(x_{j-1/2}, x_{j+1/2})`. Integrating over the subdomain,
 	
 .. math::
 	0 = \int_{x_{j-1/2}}^{x_{j+1/2}} (\mathcal{-F})_x~dx + \int_{x_{j-1/2}}^{x_{j+1/2}} \rho(x,t)~dx
@@ -19,10 +19,10 @@ The cell averaged values are therefore,
 To determine the flux at the cell faces we will take the mean of the fluxes in cells adjacent to the interfaces,
 
 .. math::
-	\mathcal{F}_{j+\frac{1}{2}} = - d_{j+\frac{1}{2}} \frac{\phi_{j+1}-\phi_j}{h_{+}}
+	\mathcal{F}_{j+\frac{1}{2}} = - \epsilon_{j+\frac{1}{2}} \frac{\phi_{j+1}-\phi_j}{h_{+}}
 
 .. math::
-	\mathcal{F}_{j-\frac{1}{2}} = - d_{j-\frac{1}{2}} \frac{\phi_{j}-\phi_{j-1}}{h_{-}}
+	\mathcal{F}_{j-\frac{1}{2}} = - \epsilon_{j-\frac{1}{2}} \frac{\phi_{j}-\phi_{j-1}}{h_{-}}
   
 Substituting the definition of the fluxes into the integrated equation and factoring for the electrical potential terms yields,
 
@@ -30,7 +30,7 @@ Substituting the definition of the fluxes into the integrated equation and facto
 	0 = \frac{\phi_{j-1}}{h_j} \left( \frac{\epsilon(x_{j-\frac{1}{2}})}{h_{-}}  \right) - \frac{\phi_{j}}{h_j} \left( \frac{\epsilon(x_{j-\frac{1}{2}})}{h_{-}} + \frac{\epsilon(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{\phi_{j+1}}{h_j} \left( \frac{\epsilon(x_{j+\frac{1}{2}})}{h_{+}} \right) + \bar{\rho}_j
 
 Naturally resolved Neumann boundary conditions
-----------------------------------------------
+**********************************************
 
 Neumann boundary conditions applied to the finite volume form of the Poisson equation are naturally resolved; that is to say that ghost cell or extrapolation approaches are not needed. Consider the integral form of the Poisson equation at the last cell of the domain on the right hand side,
 
@@ -48,7 +48,7 @@ This boundary condition appears naturally as a term in the integral equation. Th
 	\frac{1}{h_J}\left( \epsilon(x_{R}) \sigma_R - \epsilon(x_{J-1/2}) \phi_x\bigg|_{J-1/2} \right) + \bar{\rho}_J
 
 Dirichlet boundary conditions
------------------------------
+*****************************
 
 Fixed value, or Dirichlet, boundary conditions are not naturally resolved and can only be applied to the discretised form of the equation. We need to apply a Dirichlet condition to the left hand side, such that full equation for the cell :math:`j=1` reads,
 
@@ -58,14 +58,14 @@ Fixed value, or Dirichlet, boundary conditions are not naturally resolved and ca
 Clearly, this is trivial as all that is required is fix the first row of the matrix equation to be the boundary condition.
 
 Poisson equation in matrix form
--------------------------------
+*******************************
 
-Defining the coefficients,
+Defining the (vector) coefficients,
 
 .. math::
-	\ell_a & = \frac{1}{h_j}\frac{\epsilon(x_{j-1/2})}{h_{-}} \\
-	\ell_b & = -\frac{1}{h_j}\left( \frac{\epsilon_{j-1/2}}{h_{-}} + \frac{\epsilon_{j+1/2}}{h_{+}} \right) \\
-	\ell_c & = \frac{1}{h_j}\frac{\epsilon(x_{j+1/2})}{h+} \\
+	\ell_a(j) & = \frac{1}{h_j}\frac{\epsilon(x_{j-1/2})}{h_{-}} \\
+	\ell_b(j) & = -\frac{1}{h_j}\left( \frac{\epsilon_{j-1/2}}{h_{-}} + \frac{\epsilon_{j+1/2}}{h_{+}} \right) \\
+	\ell_c(j) & = \frac{1}{h_j}\frac{\epsilon(x_{j+1/2})}{h+} \\
 
 With Dirichlet boundary condition on the left hand side and a Neumann boundary condition on the right hand side the Poisson equation can be written in matrix form,
 

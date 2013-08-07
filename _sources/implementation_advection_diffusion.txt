@@ -1,5 +1,5 @@
-Solver implementation in Python
--------------------------------
+Solving the advection-diffusion-reaction equation in Python
+-----------------------------------------------------------
 
 Here we discuss how to implement a solver for the advection-diffusion equation in Python. The notes will consider how to design a solver which minimises code complexity and maximise readability.
 

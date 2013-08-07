@@ -81,11 +81,11 @@ class CellVariable(np.ndarray):
         """Linear interpolation of the cell value at the right hand face i.e. along the _p_lus direction."""
         return self.mesh.h(i+1)/(2*self.mesh.hp(i))*self[i] + self.mesh.h(i)/(2*self.mesh.hp(i))*self[i+1]
 
-class Model(object):
+class AdvectionDiffusionModel(object):
     
     """A model for the advection-diffusion equation"""
     def __init__(self, faces, a, d, k, theta=0.5, discretisation="central"):
-        super(Model, self).__init__()
+        super(AdvectionDiffusionModel, self).__init__()
         
         self.mesh = Mesh(faces)
         self.a = CellVariable(a, mesh=self.mesh)
@@ -348,73 +348,158 @@ class Model(object):
             b[inx] = value
         return b
 
-if __name__ == '__main__':
 
-    #faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-    faces = np.linspace(0, 1, 50)
-    mesh =  Mesh(faces)
+class PoissonModel(object):
+    """A finite volume solution of Poission equation"""
+    def __init__(self, faces, epsilon, rho):
+        super(PoissonModel, self).__init__()
+        self.mesh = Mesh(faces)
+        self.epsilon = CellVariable(epsilon, mesh=self.mesh)
+        self.rho = CellVariable(rho, mesh=self.mesh)
     
-    a = CellVariable(1, mesh=mesh) # Advection velocity
-    d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
-    k = 0.01                             # Time step 
-    
-    model = Model(faces, a, d, k, discretisation="exponential")
-    model.set_boundary_conditions(left_value=1., right_value=0.)
-    #model.set_boundary_conditions(left_flux=0, right_flux=0)
-    #model.set_boundary_conditions(left_value=1, right_flux=0)
-    A = model.A_matrix()
-    M = model.M_matrix()
-    b = model.b_vector()
-    
-    print "Peclet number", np.min(model.peclet_number()), np.max(model.peclet_number())
-    print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
-    
-    # Initial conditions
-    w_init = 0.5*TH(mesh.cells, 0.4, 0)
-    w_init = np.sin(np.pi*mesh.cells)**100
-    
-    # Source term
-    b[int(np.median(range(mesh.J)))] = 0.0
-    
-    # matplotlib for movie export
-    # see, http://matplotlib.org/examples/animation/moviewriter.html
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import matplotlib.animation as manimation
-    print manimation.writers.__dict__
-    FFMpegWriter = manimation.writers['ffmpeg']
-    metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
-    writer = FFMpegWriter(fps=15, metadata=metadata)
-    
-    fig = plt.figure()
-    l0, = plt.plot([],[], 'r-', lw=1)
-    l1, = plt.plot([],[], 'k-o', markersize=4)
-    plt.xlim(np.min(faces), np.max(faces))
-    plt.ylim(-0.2,1.2)
-    l1.set_data(mesh.cells,w_init)
-    
-    # # Analytical solution for Dirichlet boundary conditions
-    analytical_x = np.concatenate([np.array([np.min(faces)]), mesh.cells, np.array([np.max(faces)])])
-    analytical_solution = np.concatenate([np.array([model.left_value]), (np.exp(a/d) - np.exp(mesh.cells*a/d))/(np.exp(a/d)-1), np.array([model.right_value]) ])
-    #analytical_solution2 = np.concatenate([np.array([model.left_value]), (np.exp(a/model.d) - np.exp(mesh.cells*a/model.d))/(np.exp(a/model.d)-1), np.array([model.right_value]) ])
-    
-    w = w_init
-    with writer.saving(fig, "writer_test.mp4", 300):
-    
-        for i in range(201):
-            w = linalg.spsolve(A.tocsc(), M * w + b)
+    def _interior_elements(self, i):
         
-            if  i == 0:
-                l1.set_data(mesh.cells,w_init)
-                writer.grab_frame()
-            
-            if i %  1 == 0 or i == 0:
-                l1.set_data(mesh.cells,w)
-                #l0.set_data(analytical_x, analytical_solution)
-                area = np.sum(w * mesh.cell_widths)
-                print "#%d; t=%g; area=%g:" % (i, i*k,area)
-                writer.grab_frame()
+        # Interior coefficients for matrix equation
+        la = lambda i, e, r, m:  1/m.h(i)*e.m(i)/m.hm(i)
+        lb = lambda i, e, r, m: -1/m.h(i)*(e.m(i)/m.hm(i) + e.p(i)/m.hp(i))
+        lc = lambda i, e, r, m:  1/m.h(i)*e.p(i)/m.hp(i)
+        return la(i, self.epsilon, self.rho, self.mesh), lb(i, self.epsilon, self.rho, self.mesh), lc(i, self.epsilon, self.rho, self.mesh)
+    
+    def A_matrix(self):
+        
+        padding = np.array([0]) # A element which is pushed off the edge of the matrix by the spdiags function
+        zero = padding          # Yes, its the same. But this element is included in the matrix (semantic difference).
+        one  = np.array([1])    #
+        
+        # Use the functions to layout the matrix
+        J = self.mesh.J
+        inx = np.array(range(1,J-1))
+        la, lb, lc = self._interior_elements(inx)
+        upper = np.concatenate([padding, zero, lc ]) 
+        central = np.concatenate([zero, lb, zero  ]) 
+        lower = np.concatenate([la, zero , padding])
+        A = sparse.spdiags([lower, central, upper], [-1,0,1], J, J).todok()
+        
+        # import pylab
+        # pylab.matshow(A.todense())
+        # pylab.show()
+        # 
+        # Dirichlet left
+        A[0,0] = 1
+        A[0,1] = 0
+        # Neumann right
+        
+        
+        la = 1/self.mesh.h(J-1)*self.epsilon.m(J-1)/self.mesh.hm(J-1)
+        A[-1,-1] = -la
+        A[-1,-2] =  la
+        
+        # pylab.matshow(A.todense())
+        # pylab.show()
+        return -1*A
+        
+    def d_vector(self):
+        
+        J = self.mesh.J
+        inx = np.array(range(0,J))
+        d = self.rho[inx]
+        
+        omega_L = 0
+        sigma_R = 0
+        d[0] = -omega_L # left Dirichlet
+        d[-1] = 1/self.mesh.h(J-1)*self.epsilon[J-1]*sigma_R + self.rho[J-1] # right Neumann
+        
+        # import pylab
+        # pylab.matshow(np.matrix(d))
+        # pylab.show()
+        # print d
+        return d
+        
+if __name__ == '__main__':
+    
+    faces = np.linspace(0, 2, 200)
+    pm = PoissonModel(faces, 1, -1)
+    A = pm.A_matrix()
+    d = pm.d_vector()
+    w = linalg.spsolve(A.tocsc(), d)
+    print w
+    import pylab
+    pylab.plot(pm.mesh.cells, w, "-b")
+    x = faces
+    pylab.plot(x, x**2/2 - 2*x, "-r" )
+    pylab.show()
+    x = pm.mesh.cells
+    error = (abs(w  - (x**2/2 - 2*x)))
+    print error
+    #error = (error / (x**2/2 - 2*x) - 1) * 100
+    pylab.plot(x, error)
+    pylab.show()
+    
+    # #faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
+    # faces = np.linspace(0, 1, 50)
+    # mesh =  Mesh(faces)
+    # 
+    # a = CellVariable(1, mesh=mesh) # Advection velocity
+    # d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
+    # k = 0.01                             # Time step 
+    # 
+    # model = AdvectionDiffusionModel(faces, a, d, k, discretisation="exponential")
+    # model.set_boundary_conditions(left_value=1., right_value=0.)
+    # #model.set_boundary_conditions(left_flux=0, right_flux=0)
+    # #model.set_boundary_conditions(left_value=1, right_flux=0)
+    # A = model.A_matrix()
+    # M = model.M_matrix()
+    # b = model.b_vector()
+    # 
+    # print "Peclet number", np.min(model.peclet_number()), np.max(model.peclet_number())
+    # print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
+    # 
+    # # Initial conditions
+    # w_init = 0.5*TH(mesh.cells, 0.4, 0)
+    # w_init = np.sin(np.pi*mesh.cells)**100
+    # 
+    # # Source term
+    # b[int(np.median(range(mesh.J)))] = 0.0
+    # 
+    # # matplotlib for movie export
+    # # see, http://matplotlib.org/examples/animation/moviewriter.html
+    # import matplotlib
+    # matplotlib.use("Agg")
+    # import matplotlib.pyplot as plt
+    # import matplotlib.animation as manimation
+    # print manimation.writers.__dict__
+    # FFMpegWriter = manimation.writers['ffmpeg']
+    # metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
+    # writer = FFMpegWriter(fps=15, metadata=metadata)
+    # 
+    # fig = plt.figure()
+    # l0, = plt.plot([],[], 'r-', lw=1)
+    # l1, = plt.plot([],[], 'k-o', markersize=4)
+    # plt.xlim(np.min(faces), np.max(faces))
+    # plt.ylim(-0.2,1.2)
+    # l1.set_data(mesh.cells,w_init)
+    # 
+    # # # Analytical solution for Dirichlet boundary conditions
+    # analytical_x = np.concatenate([np.array([np.min(faces)]), mesh.cells, np.array([np.max(faces)])])
+    # analytical_solution = np.concatenate([np.array([model.left_value]), (np.exp(a/d) - np.exp(mesh.cells*a/d))/(np.exp(a/d)-1), np.array([model.right_value]) ])
+    # #analytical_solution2 = np.concatenate([np.array([model.left_value]), (np.exp(a/model.d) - np.exp(mesh.cells*a/model.d))/(np.exp(a/model.d)-1), np.array([model.right_value]) ])
+    # 
+    # w = w_init
+    # with writer.saving(fig, "writer_test.mp4", 300):
+    # 
+    #     for i in range(201):
+    #         w = linalg.spsolve(A.tocsc(), M * w + b)
+    #     
+    #         if  i == 0:
+    #             l1.set_data(mesh.cells,w_init)
+    #             writer.grab_frame()
+    #         
+    #         if i %  1 == 0 or i == 0:
+    #             l1.set_data(mesh.cells,w)
+    #             #l0.set_data(analytical_x, analytical_solution)
+    #             area = np.sum(w * mesh.cell_widths)
+    #             print "#%d; t=%g; area=%g:" % (i, i*k,area)
+    #             writer.grab_frame()
 
 
 

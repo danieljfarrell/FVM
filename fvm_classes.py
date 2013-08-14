@@ -33,7 +33,7 @@ class Mesh(object):
         self.faces = np.array(faces)
         self.cells = 0.5 * (self.faces[0:-1] + self.faces[1:])
         self.J = len(self.cells)
-        self.cell_widths = self.faces[1:] - self.faces[0:-1]
+        self.cell_widths = (self.faces[1:] - self.faces[0:-1])
     
     def h(self, i):
         """Returns the width of the cell at the specified index."""
@@ -43,13 +43,13 @@ class Mesh(object):
         """Distance between centroids in the backwards direction."""
         if not check_index_within_bounds(i,1,self.J-1):
             raise ValueError("hm index runs out of bounds")
-        return self.cells[i] - self.cells[i-1]
+        return (self.cells[i] - self.cells[i-1])
         
     def hp(self, i):
         """Distance between centroids in the forward direction."""
         if not check_index_within_bounds(i,0,self.J-2):
             raise ValueError("hp index runs out of bounds")
-        return self.cells[i+1] - self.cells[i]
+        return (self.cells[i+1] - self.cells[i])
 
 class CellVariable(np.ndarray):
     """Representation of a variable defined at the cell centers. Provides interpolation functions to calculate the value at cell faces."""
@@ -164,7 +164,7 @@ class AdvectionDiffusionModel(object):
         else:
             raise ValueError("Please choose a valid option for the `matrix` keyword, you can choose from `A` or `M`.")
         
-    def _robin_boundary_condition_elements_right(self, matrix=None):
+     def _robin_boundary_condition_elements_right(self, matrix=None):
         
         # Right hand side Robin boundary coefficients for matrix equation
         aJ = lambda a, d, m, k: k/m.h(m.J-1)*( a.m(m.J-1)*m.h(m.J-1)/(2*m.hm(m.J-1)) + d.m(m.J-1)/m.hm(m.J-1) )
@@ -193,7 +193,7 @@ class AdvectionDiffusionModel(object):
     def _robin_boundary_condition_vector_elements_right(self):
         # Index and boundary condition vector elements for Robin conditions
         location = [self.mesh.J-1]
-        value = [self.k*self.right_flux/self.mesh.h(self.mesh.J-1)]
+        value = [-self.k*self.right_flux/self.mesh.h(self.mesh.J-1)] # BUG FIXED HERE, changed to -1*self.right_flux
         return tuple([list(x) for x in zip(location, value)])
     
     def _dirichlet_boundary_condition_elements_left(self, matrix=None):
@@ -417,6 +417,7 @@ class PoissonModel(object):
         
 if __name__ == '__main__':
     
+    #faces = np.linspace(0-0.005, 2+0.005, 200)
     faces = np.linspace(0, 2, 200)
     pm = PoissonModel(faces, 1, -1)
     A = pm.A_matrix()
@@ -429,7 +430,7 @@ if __name__ == '__main__':
     pylab.plot(x, x**2/2 - 2*x, "-r" )
     pylab.show()
     x = pm.mesh.cells
-    error = (abs(w  - (x**2/2 - 2*x)))
+    error = w - (x**2/2 - 2*x)
     print error
     #error = (error / (x**2/2 - 2*x) - 1) * 100
     pylab.plot(x, error)

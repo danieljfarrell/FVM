@@ -38,7 +38,7 @@ Substituting the definition of the fluxes into the above equation yields,
 .. math::
 	w_j^{\prime} = \frac{w_{j-1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) + \frac{w_j}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{w_{j+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
 
-This equation is the *semi-discrete* form.
+This equation is the *semi-discrete* form because the equation has not been discretised in time.
 
 Adaptive upwinding & exponential fitting
 ****************************************
@@ -121,26 +121,58 @@ Therefore the naturally resolved boundary condition on the right hand side becom
 .. math::
 	w_J^{\prime} = \frac{w_{J-1}}{h_J}\left( \frac{a(x_{J-1/2})h_{J}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) + \frac{w_{J}}{h_J} \left( \frac{a(x_{J-1/2}) h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) - \frac{g_{R}(x_R)}{h_J} + \bar{s}_J
 
+
+Explicit and implicit forms
+***************************
+
+In the discussion so far we have been ignoring one important deal: at what *time* is the r.h.s of the discretised equation evaluated?
+
+Moreover, if we choose the r.h.s to be evaluated at the *present* time step, :math:`t_n` this is known as an *explicit* method,
+
+.. math::
+	w_j^{\prime} = \frac{w_{j-1}^{n}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}},t_n) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}}, t_n)}{h_{-}}\right) + \frac{w_j^n}{h_j}\left( \frac{a(x_{j-\frac{1}{2}},t_n)h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}},t_n)h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}},t_n)}{h_{-}} - \frac{d(x_{j+\frac{1}{2}},t_n)}{h_{+}}  \right) + \frac{w_{j+1}^{n+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}},t_n)h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}},t_n)}{h_{+}} \right)
+
+Explicit methods are very simple. Starting with initial conditions at time :math:`t_n`, the above equation can be rearranged to find the solution variable :math:`w_j^{n+1}` at the future time step, :math:`t_{n+1}`.
+
+However the downside of using explicit methods is that they are often numerically unstable unless the time step is exceptionally (sometime unrealistically) small.
+
+Fortunately there is an second alternative, we can choice to write the r.h.s of the equation at the *future* time step, :math:`t_{n+1}`, this is known as an *implicit* method,
+
+.. math::
+	w_j^{\prime} = \frac{w_{j-1}^{n+1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}},t_{n+1}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}}, t_{n+1})}{h_{-}}\right) + \frac{w_j^{n+1}}{h_j}\left( \frac{a(x_{j-\frac{1}{2}},t_{n+1})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}},t_{n+1})h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}},t_{n+1})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}},t_{n+1})}{h_{+}}  \right) + \frac{w_{j+1}^{n+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}},t_{n+1})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}},t_{n+1})}{h_{+}} \right)
+
+Explicit methods are significantly more numerically robust, however they pose a problem, how does one write the equations because the solution variable at the future time step :math:`w^{n+1}` is unknown? The answer is that at each time step we must solve a linear system of equation to find :math:`w^{n+1}`. 
+
+Moreover, we have discretised a continuous PDE into :math:`J` equations and :math:`J` unknowns (the solution variables), therefore it is possible to solve this set of equations to find the unknown :math:`w^{n+1}` terms. If the equations are linear, that is to say that they can be written in matrix form *and* the variables of the coefficients do not depend on the future state of the system, then this amounts to solving a linear system of the form :math:`A\cdot x = d`. However, if the equations are nonlinear or the coefficients depend on the future state of the system this approach cannot be used, and the solution variable :math:`w^{n+1}` can only be found by an iterative procedure for example Newton-Raphson method.
+
+The following section assumes that the equation is linear.
+
 The :math:`\theta`-method
 *************************
 
-The :math:`\theta`-method is an approach which improves the stability and numerical accuracy when integrating a partial differential equation in time. It consists of writing the equation as the time average of the current and future time step. When :math:`\theta=0` a fully explicit scheme is recovered in which the future state of the system is derived purely from the current state. Conversely,  :math:`\theta=1` gives a fully implicit formalism, in which a linear system of equation is solved to determine the future state. Setting :math:`\theta=1/2` results in an average of these two limits and it is generally causes the the Crank-Nicolson method. Crank-Nicolson provides unconditionally stable iterations for the advection and diffusion equations, and the improves the time integration (it corresponds to a trapezium integration in the time domain).
-
-
-.. math::
-	\frac{w_j^{n+1} - w_j^n}{k} = \theta r_a w_{j-1}^{n+1} + (1 - \theta) r_a w_{j-1}^{n} + \theta r_b w_{j-1}^{n+1}  + (1 - \theta) r_b w_{j-1}^{n} +  \theta r_c w_{j-1}^{n+1}  + (1 - \theta) r_c w_{j-1}^{n} + \bar{s}_j^n
-
-In the above :math:`k` stands for the difference in time, the :math:`n+1` are the terms at the future time point, and :math:`n` terms are the current time point. The ":math:`r`" terms are the coefficients of the semi-discretised equation. Moving the unknowns to the left hand side,
+The :math:`\theta`-method is an approach which combines implicit and explicit forms into one method. It consists of writing the equation as the average of the implicit and explicit forms. If we let :math:`F_{w^{n}}` and :math:`F_{w^{n+1}}` stand for the r.h.s of the explicit and implicit forms of the equations then the :math:`\theta`-method gives,
 
 .. math::
-	w_j^{n+1} - \theta k r_a w_{j-1}^{n+1} - \theta k r_b w_{j}^{n+1} - \theta k r_c w_{j+1}^{n+1} = w_j^{n} + (1 - \theta) k r_a w_{j-1}^{n} + (1 - \theta) k r_b w_{j}^{n} + (1 - \theta) k r_c w_{j1}^{n} + k \bar{s}_j^n
-	
-Defining the coefficients for to include the time step,
+	w_j^{\prime} = \theta F(w^{n+1}) + (1-\theta)F(w^{n})
+
+Setting :math:`\theta=0` recovers a fully implicit scheme while :math:`\theta=1` gives a fully explicit discretisation. The value of :math:`\theta` is not limited to just 0 or 1. It is common to set :math:`\theta=1/2`, this is called the Crank-Nicolson method. It is particularly popular for diffusion problem because it preserves the stability of the implicit form but also increases the accuracy of the time integration from first to second order (because two points in time are being averaged). For advection diffusion problems the Crank-Nicolson method is also unconditionally stable.
+
+In the above equation,
 
 .. math::
-	r_a & = \frac{k}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}}  + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) \\
-	r_b & = \frac{k}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - \frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right)\\
-	r_c & = \frac{k}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
+	F_{w^{n}} = r_a w_{j-1}^{n} + r_b w_{j}^{n} + r_c w_{j+1}^{n} \\
+	F_{w^{n+1}} = r_a w_{j-1}^{n+1} + r_b w_{j}^{n+1} + r_c w_{j+1}^{n+1}
+
+and the coefficients are,
+
+.. math::
+	r_a & = \frac{1}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}}  + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) \\
+	r_b & = \frac{1}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - \frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right)\\
+	r_c & = \frac{1}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
+
+We have written the coefficients without dependence on time to simplify the notation, but the coefficients should be calculated at the same time points as their solution variable. However, the coefficients must be linear, they should not depend on the values of the solution variable.
+
+**STOPPED HERE NEED TO UPDATE THE MATRIX EXPRESSION FOR THE THE NEW SYSTEM FOR TIME ITERATION**
 
 Discretised equation in matrix form
 ***********************************

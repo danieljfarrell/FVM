@@ -113,11 +113,12 @@
 <h2>General matrix form<a class="headerlink" href="#general-matrix-form" title="Permalink to this headline">¶</a></h2>
 <p>Writing the equation in the form,</p>
 <div class="math">
-\[w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right)\]</div>
-<p>allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. The new matrix, <span class="math">\(\alpha\)</span> is,</p>
+\[w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right) + \beta\]</div>
+<p>allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. A new matrix, <span class="math">\(\alpha\)</span> are vector, <span class="math">\(\beta\)</span> have been included. These used to incorporate the boundary conditions as discussed above, they have the form,</p>
 <div class="math">
-\[\begin{split}\alpha &amp; = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right)\end{split}\]</div>
-<p>and the modified coefficient matrix is,</p>
+\[\begin{split}\alpha &amp; = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right) \\
+\beta  &amp; = \left( \beta_1, 0, \cdots, 0, \beta_J \right)\end{split}\]</div>
+<p>The modified coefficient matrix becomes,</p>
 <div class="math">
 \[\begin{split}M =
     \begin{align}
@@ -165,6 +166,14 @@
 </tr>
 <tr class="row-odd"><td><span class="math">\(\alpha_J\)</span></td>
 <td><span class="math">\(1\)</span></td>
+<td><span class="math">\(0\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\beta_1\)</span></td>
+<td>:math:` frac{g_R(x_1)}{h_1}`</td>
+<td><span class="math">\(0\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\beta_J\)</span></td>
+<td><span class="math">\(-\frac{g_R(x_J)}{h_J}\)</span></td>
 <td><span class="math">\(0\)</span></td>
 </tr>
 </tbody>

@@ -95,14 +95,15 @@ General matrix form
 Writing the equation in the form,
 
 .. math::
-    w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right)
+    w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right) + \beta
 
-allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. The new matrix, :math:`\alpha` is,
+allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. A new matrix, :math:`\alpha` are vector, :math:`\beta` have been included. These used to incorporate the boundary conditions as discussed above, they have the form,
 
 .. math::
-    \alpha & = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right)
+    \alpha & = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right) \\
+    \beta  & = \left( \beta_1, 0, \cdots, 0, \beta_J \right)
 
-and the modified coefficient matrix is,
+The modified coefficient matrix becomes,
 
 .. math::
     M = 
@@ -134,6 +135,10 @@ Table showing coefficients which should be altered to apply either Robin or Diri
 | :math:`\alpha_1`  | :math:`1`                                                                                                    | :math:`0`           |
 +-------------------+--------------------------------------------------------------------------------------------------------------+---------------------+
 | :math:`\alpha_J`  | :math:`1`                                                                                                    | :math:`0`           |
++-------------------+--------------------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\beta_1`   | :math:` \frac{g_R(x_1)}{h_1}`                                                                                | :math:`0`           |
++-------------------+--------------------------------------------------------------------------------------------------------------+---------------------+
+| :math:`\beta_J`   | :math:`-\frac{g_R(x_J)}{h_J}`                                                                                | :math:`0`           |
 +-------------------+--------------------------------------------------------------------------------------------------------------+---------------------+
 
 As can be seen, Dirichlet conditions require minor modifications (only the component so the :math:`\alpha` matrix are changed). On the other hand, Robin boundary conditions require that the elements of the coefficient matrix are altered (however for Robin conditions the :math:`\alpha` matrix is not required).

@@ -24,10 +24,10 @@ At a high-level usage of the code looks like the following,
 	model = Model(faces, a, d, k)
 	model.set_boundary_conditions(left_value=1., right_value=0.)
 	
-	# Ask for the linear system... 
-	A = model.A_matrix()
-	M = model.M_matrix()
-	b = model.b_vector()
+	# Ask for the discretised system...
+	M = model.coefficient_matrix()
+	alpha = model.alpha_matrix()
+	beta = model.beta_vector()
 	
 	# Solve...
 
@@ -94,46 +94,40 @@ The :code:`Model` class
 
 The model class is where the creating of the matrices occurs and where boundary conditions can be applied to the problem. For these reasons the class is fairly complicated.
 
-There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method :code:`_interior_elements()` returns elements which correspond to the lower, central and upper diagonals for a specific index. For example, to calculate the interior matrix elements for mesh point :code:`i=4` one would do the following,
+There are method which return different element of the final matrix. The interior elements are fairly homogenous, the only real difference is where there are spatially varying coefficient of cell widths. For this reason the the method :code:`_interior_matrix_elements()` returns elements which correspond to the lower, central and upper diagonals for a specific index. For example, to calculate the interior matrix elements for mesh point at value :code:`index` one would do the following,
 
 .. code:: python
-
+    
+    # Return the the interior matrix elements (the r-terms)
+    # for a particular spatial index 
 	model = Model(...)
-	ra, rb, rc = model._interior_functions()
-	"index is i=4"
-	ra(4, model.a, model.d, model.mesh, model.k) # lower diagonal function
-	ra(4, model.a, model.d, model.mesh, model.k) # central diagonal function
-	ra(4, model.a, model.d, model.mesh, model.k) # upper diagonal function
+    index = ...
+    # The lower, central and, upper diagonal terms of the stencil
+	ra, rb, rc = model._interior_matrix_elements(index)
 
 The function names here correspond to the matrix element in the previous section.
 
-Note that the function is prefixed with an underscore this is because a 'users' should have no need to call this method. It is called internally when constructing the finite-volume matrices. However, an 'author' does need to provide the correct matrix element with this function.
+Note that the function is prefixed with an underscore this is because are private, 'users' should have no need to call these method. It is called internally when constructing the finite-volume matrices. However, as this is a overview of how to implement this is an readable and useful way we include this detail.
 
-The methods,
+The following methods play a similar role,
 
 .. code:: python
 
-	def _robin_boundary_condition_elements_left(self):
+	def _robin_boundary_condition_matrix_elements_left(self):
 		...
 		
- 	def _robin_boundary_condition_elements_right(self):
+ 	def _robin_boundary_condition_matrix_elements_right(self):
 		...
 		
- 	def _dirichlet_boundary_condition_elements_left(self):
+ 	def _dirichlet_boundary_condition_matrix_elements_left(self):
 		...
 		
-	def _dirichlet_boundary_condition_elements_right(self):
+	def _dirichlet_boundary_condition_matrix_elements_right(self):
 		...
 
-play a similar role. However the return a list of index-value pairs :code:`([(1,1), a11], [(i,2), b12] ...)` rather than returning functions. The functions return the value of element which need to change (with respect to the interior values) in order include boundary conditions. The index-value pair facilitates automatic insertion of the values into the correct matrix element. As we will see later, rather than hard coding the position of the various element if the index and value are specified it makes the destination of the element unambiguous. It also allows the value of the matrix element to be defined at the same point in the code as the location. This is beneficial for providing context and should reduce bugs and complexity.
+They return a list of index-value pairs :code:`([(1,1), a11], [(i,2), b12] ...)`. The functions return the value of element which need to change (with respect to the interior values) in order include boundary conditions. The index-value pair facilitates automatic insertion of the values into the correct matrix element. As we will see later, rather than hard coding the position of the various element if the index and value are specified it makes the destination of the element unambiguous. It also allows the value of the matrix element to be defined at the same point in the code as the location. This is beneficial for providing context and should reduce bugs and complexity.
  
-Boundary conditions modify terms in the :math:`\boldsymbol{A}` and :math:`\boldsymbol{M}` matrices by they also require that a vector be added to the equations. The form of the linear system being solved is,
-
-.. math::
-	\boldsymbol{A} \cdot w^{n+1} = \boldsymbol{M} \cdot w^n = b
-
-where :math:`b` is a vector contains the boundary conditions values (and also values of the source term should it exist). The elements of :math:`b` are returned from the following methods, 
-
+The elements for the :math:`\beta` boundary condition vector (which is added to the linear system) are generated from the functions below,
 .. code:: python
 
 	def _robin_boundary_condition_vector_elements_left(self):
@@ -148,7 +142,7 @@ where :math:`b` is a vector contains the boundary conditions values (and also va
 	def _dirichlet_boundary_condition_vector_elements_right(self):
 		...
  
-Again, these method should return *index-values* pairs, but because the are element of a vector the index is simply a number, not a tuple as with the matrix elements.
+Again, these method should return *index-values* pairs.
 
 The :code:`Model` class also include some convenience function for checking the value of the Peclet number and the CFL conditions which can be called via,
 
@@ -166,18 +160,42 @@ The method which are intended for the user to actually call when constructing th
 
 .. code:: python
 
-   def A_martrix(self):
+   def coefficient_matrix(self):
    		...
     
-   def M_martrix(self):
+   def alpha_matrix(self):
    		...
 
-   def b_vector(self):
+   def beta_vector(self):
    		...
 
-Which simply return the matrices and vector of the linear system.
+The linear system for time-stepping can be constructed easily,
 
-Finally, when initialising a :code:`Model` object two important keyword arguments can be passed, they are, :code:`theta` and :code:`, discretisation`. The value of :code:`theta` controls the time-integration method (setting :code:`theta=0.5` achieved a Crank-Nicolson trapezoidal integration in time), and the value of :code:`discretisation` can be one of the following: :code:`'upwind', 'central', 'exponential'`. The :code:`upwind` option uses the classic *first order upwind* discretisation, :code:`central` uses *second-order central* and setting to :code:`exponential` uses an adaptive scheme which will use weight between the central and upwind scheme depending on the local value of the Peclet number. This is the classic 'exponential fitting' or 'Scharfetter-Gummel' discretisation. **N.B.** Scharfetter-Gummel also refers to a method of solving the advection-diffusion equation is a non-coupled manner, this is not the case here where it only refers to the the discretisation method.
+.. code:: python
+    
+    # In pseudo-code
+    model = AdvectionDiffusionModel(...)
+    M = model.coefficient_matrix()
+    alpha = model.alpha_matrix()
+    beta = model.beta_vector()
+    I = sparse.identity(model.mesh.J)
+    
+    # Apply boundary conditions
+    u_init = ... #
+    ...
+    
+    tau = 0.01   # time step
+    theta = 0.5  # Implicit/explicit parameter
+    
+    u = u_init
+    for i in range(...):
+        # time step the linear system, A.x = d
+        A = I - tau * theta * alpha * M
+        d = (I + tau * (1-theta) * alpha * M) * u
+        u = spsolve(A,d)
+
+
+Finally, when initialising a :code:`Model` object the keyword argument :code:`, discretisation` is important. Is can be set to one of the following :code:`'upwind', 'central', 'exponential'`. The :code:`upwind` option uses the classic *first order upwind* discretisation, :code:`central` uses *second-order central* and setting to :code:`exponential` uses an adaptive scheme which will use weight between the central and upwind scheme depending on the local value of the Peclet number. This is the classic 'exponential fitting' or 'Scharfetter-Gummel' discretisation. **N.B.** Scharfetter-Gummel also refers to a method of solving the advection-diffusion equation is a non-coupled manner, this is not the case here where it only refers to the the discretisation method.
 
 Examples
 ********

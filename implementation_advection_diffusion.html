@@ -142,20 +142,20 @@ index = ...
 </pre></div>
 </div>
 <p>They return a list of index-value pairs <tt class="code docutils literal"><span class="pre">([(1,1),</span> <span class="pre">a11],</span> <span class="pre">[(i,2),</span> <span class="pre">b12]</span> <span class="pre">...)</span></tt>. The functions return the value of element which need to change (with respect to the interior values) in order include boundary conditions. The index-value pair facilitates automatic insertion of the values into the correct matrix element. As we will see later, rather than hard coding the position of the various element if the index and value are specified it makes the destination of the element unambiguous. It also allows the value of the matrix element to be defined at the same point in the code as the location. This is beneficial for providing context and should reduce bugs and complexity.</p>
-<p>The elements for the <span class="math">\(\beta\)</span> boundary condition vector (which is added to the linear system) are generated from the functions below,
-.. code:: python</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>def _robin_boundary_condition_vector_elements_left(self):</dt>
-<dd>...</dd>
-<dt>def _robin_boundary_condition_vector_elements_right(self):</dt>
-<dd>...</dd>
-<dt>def _dirichlet_boundary_condition_vector_elements_left(self):</dt>
-<dd>...</dd>
-<dt>def _dirichlet_boundary_condition_vector_elements_right(self):</dt>
-<dd>...</dd>
-</dl>
-</div></blockquote>
+<p>The elements for the <span class="math">\(\beta\)</span> boundary condition vector (which is added to the linear system) are generated from the functions below,</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">_robin_boundary_condition_vector_elements_left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_robin_boundary_condition_vector_elements_right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_dirichlet_boundary_condition_vector_elements_left</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">_dirichlet_boundary_condition_vector_elements_right</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
 <p>Again, these method should return <em>index-values</em> pairs.</p>
 <p>The <tt class="code docutils literal"><span class="pre">Model</span></tt> class also include some convenience function for checking the value of the Peclet number and the CFL conditions which can be called via,</p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">peclet_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -167,13 +167,13 @@ index = ...
 </div>
 <p>The method which are intended for the user to actually call when constructing the linear system are,</p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">coefficient_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-             <span class="o">...</span>
+    <span class="o">...</span>
 
 <span class="k">def</span> <span class="nf">alpha_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-             <span class="o">...</span>
+    <span class="o">...</span>
 
 <span class="k">def</span> <span class="nf">beta_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-             <span class="o">...</span>
+    <span class="o">...</span>
 </pre></div>
 </div>
 <p>The linear system for time-stepping can be constructed easily,</p>

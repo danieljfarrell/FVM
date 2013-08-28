@@ -128,19 +128,20 @@ The following methods play a similar role,
 They return a list of index-value pairs :code:`([(1,1), a11], [(i,2), b12] ...)`. The functions return the value of element which need to change (with respect to the interior values) in order include boundary conditions. The index-value pair facilitates automatic insertion of the values into the correct matrix element. As we will see later, rather than hard coding the position of the various element if the index and value are specified it makes the destination of the element unambiguous. It also allows the value of the matrix element to be defined at the same point in the code as the location. This is beneficial for providing context and should reduce bugs and complexity.
  
 The elements for the :math:`\beta` boundary condition vector (which is added to the linear system) are generated from the functions below,
-.. code:: python
 
-	def _robin_boundary_condition_vector_elements_left(self):
-		...
-		
- 	def _robin_boundary_condition_vector_elements_right(self):
-		...
-		
- 	def _dirichlet_boundary_condition_vector_elements_left(self):
-		...
-		
-	def _dirichlet_boundary_condition_vector_elements_right(self):
-		...
+.. code:: python
+    
+    def _robin_boundary_condition_vector_elements_left(self):
+        ...
+
+    def _robin_boundary_condition_vector_elements_right(self):
+        ...
+
+    def _dirichlet_boundary_condition_vector_elements_left(self):
+        ...
+
+    def _dirichlet_boundary_condition_vector_elements_right(self):
+        ...
  
 Again, these method should return *index-values* pairs.
 
@@ -159,15 +160,15 @@ The method which are intended for the user to actually call when constructing th
 
 
 .. code:: python
-
-   def coefficient_matrix(self):
-   		...
     
-   def alpha_matrix(self):
-   		...
+    def coefficient_matrix(self):
+        ...
 
-   def beta_vector(self):
-   		...
+    def alpha_matrix(self):
+        ...
+
+    def beta_vector(self):
+        ...
 
 The linear system for time-stepping can be constructed easily,
 

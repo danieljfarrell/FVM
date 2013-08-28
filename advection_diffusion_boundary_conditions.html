@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Boundary conditions for the advection-diffusion-reaction equation &mdash; FVM Docs 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="next" title="The Poisson equation" href="poisson.html" />
+    <link rel="prev" title="The advection-diffusion-reaction equation" href="advection_diffusion.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="poisson.html" title="The Poisson equation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="advection_diffusion.html" title="The advection-diffusion-reaction equation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="boundary-conditions-for-the-advection-diffusion-reaction-equation">
+<h1>Boundary conditions for the advection-diffusion-reaction equation<a class="headerlink" href="#boundary-conditions-for-the-advection-diffusion-reaction-equation" title="Permalink to this headline">¶</a></h1>
+<p>A well posed problem requires boundary conditions.</p>
+<div class="section" id="robin-boundary-conditions-known-flux">
+<h2>Robin boundary conditions (known flux)<a class="headerlink" href="#robin-boundary-conditions-known-flux" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method">Within the finite volume method Robin boundary (known flux) conditions are naturally resolved</a>. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell <span class="math">\(\Omega_1\)</span>,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/boundary_cell_FVM.png"><img alt="Finite volume boundary cell at the left hand side." src="_images/boundary_cell_FVM.png" style="width: 333.0px; height: 192.0px;" /></a>
+<p class="caption">Finite volume boundary cell at the left hand side.</p>
+</div>
+<div class="math">
+\[w_1^{\prime} =  -\frac{\mathcal{F}_{3/2}}{h_1} + \frac{\mathcal{F}_{1/2}}{h_{1}} + \bar{s}_1\]</div>
+<p>The Robin boundary condition specifies the flux at <span class="math">\(x_{1/2}\)</span>,</p>
+<div class="math">
+\[\mathcal{F}_{1/2} = g_{R}(x_{1/2})\]</div>
+<p>Therefore the boundary condition can be incorporated without invoking any information regarding the ghost cell,</p>
+<div class="math">
+\[w_1^{\prime} = \frac{w_1}{h_1}\left( \frac{-a(x_{3/2})h_{2}}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) + \frac{w_{2}}{h_1} \left( \frac{-a(x_{3/2}) h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) + \frac{g_{R}(x_L)}{h_1} + \bar{s}_1\]</div>
+<p>Similarly applying the same procedure to the <span class="math">\(\Omega_J\)</span> cell at the right hand side boundary,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/boundary_cell_FVM_rhs.png"><img alt="Finite volume boundary cell at the right hand side." src="_images/boundary_cell_FVM_rhs.png" style="width: 304.0px; height: 191.0px;" /></a>
+<p class="caption">Finite volume boundary cell at the right hand side.</p>
+</div>
+<div class="math">
+\[w_J^{\prime} =  -\frac{\mathcal{F}_{J+1/2}}{h_J} + \frac{\mathcal{F}_{J-1/2}}{h_J} + \bar{s}_J\]</div>
+<p>The Robin boundary condition at the right hand side is,</p>
+<div class="math">
+\[g_{R}(x_R) = \mathcal{F}_{J+1/2}\]</div>
+<p>Therefore the naturally resolved boundary condition on the right hand side becomes,</p>
+<div class="math">
+\[w_J^{\prime} = \frac{w_{J-1}}{h_J}\left( \frac{a(x_{J-1/2})h_{J}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) + \frac{w_{J}}{h_J} \left( \frac{a(x_{J-1/2}) h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) - \frac{g_{R}(x_R)}{h_J} + \bar{s}_J\]</div>
+</div>
+<div class="section" id="dirichlet-boundary-conditions-known-value">
+<h2>Dirichlet boundary conditions (known value)<a class="headerlink" href="#dirichlet-boundary-conditions-known-value" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This is only valid provided the initial conditions also satisfy the boundary conditions</p>
+</div>
+<p>Dirichlet (known value) boundary conditions are trivial to implement. All that is required is to fix the boundary term to be a constant value. If the initial conditions satisfy the boundary conditions (as they should) then all that is needed to to make sure that the time-derivative (the change with time) of the boundary points is always zero. For example, to impose Dirichlet boundary conditions</p>
+<div class="math">
+\[w_1^{n+1} = g_D(x_1) \quad w_{J}^{n+1} = g_D(x_J)\]</div>
+<p>We simply need to specify,</p>
+<div class="math">
+\[F_1(w_1^{n}) = 0 \quad F_1(w_1^{n+1}) = 0\]</div>
+<p>This can be achieved by multiplying the r.h.s. by the modified identity matrix where the first and last elements are zero,</p>
+<div class="math">
+\[w^{\prime} = \text{diag}(0,1,\cdots,1,0) \left( \theta F(w^{n+1}) + (1-\theta)F(w^{n})  \right)\]</div>
+<p>If the boundary conditions are time dependent,</p>
+<div class="math">
+\[w_1^{n+1} = g_D(x_1, t_{n+1}) \quad w_{J}^{n+1} = g_D(x_J, t_{n+1})\]</div>
+<p>The we should also add a matrix to the r.h.s. which is contains the changes to the boundary value between the time-steps,</p>
+<div class="math">
+\[w^{\prime} = \text{diag}(0,1,\cdots,1,0) \left( \theta F(w^{n+1}) + (1-\theta)F(w^{n})  \right) + \text{diag}(\Delta g_D(x_1), 0, \cdots, 0, \Delta g_D(x_J) )\]</div>
+<p>where,</p>
+<div class="math">
+\[\begin{split}\Delta g_D(x_1) = g_D(x_1, t_{n+1}) - g_D(x_1, t_{n}) \\
+\Delta g_D(x_J) = g_D(x_J, t_{n+1}) - g_D(x_J, t_{n})\end{split}\]</div>
+<p>The following assumes time-invariant boundary conditions.</p>
+</div>
+<div class="section" id="general-matrix-form">
+<h2>General matrix form<a class="headerlink" href="#general-matrix-form" title="Permalink to this headline">¶</a></h2>
+<p>Writing the equation in the form,</p>
+<div class="math">
+\[w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right)\]</div>
+<p>allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. The new matrix, <span class="math">\(\alpha\)</span> is,</p>
+<div class="math">
+\[\begin{split}\alpha &amp; = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right)\end{split}\]</div>
+<p>and the modified coefficient matrix is,</p>
+<div class="math">
+\[\begin{split}M =
+    \begin{align}
+    \begin{pmatrix}
+    b_1 &amp; c_1    &amp;        &amp;       &amp; 0   \\
+    r_a &amp; r_b    &amp; r_c    &amp;       &amp;     \\
+        &amp;&amp; \ddots &amp; \ddots &amp; \ddots&amp;     \\
+        &amp;&amp;        &amp;  r_a   &amp; r_b   &amp; r_c \\
+     0  &amp;&amp;        &amp;        &amp; a_J   &amp; b_J
+    \end{pmatrix}
+\end{align}\end{split}\]</div>
+<p>Table showing coefficients which should be altered to apply either Robin or Dirichlet boundary conditions.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="73%" />
+<col width="14%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Symbol</th>
+<th class="head">Robin</th>
+<th class="head">Dirichlet</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(b_1\)</span></td>
+<td><span class="math">\(\frac{1}{h_1}\left( \frac{-a(x_{3/2})h_{2}}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right)\)</span></td>
+<td><span class="math">\(r_b\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(c_1\)</span></td>
+<td><span class="math">\(\frac{1}{h_1} \left( \frac{-a(x_{3/2}) h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right)\)</span></td>
+<td><span class="math">\(r_c\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(a_J\)</span></td>
+<td><span class="math">\(\frac{1}{h_J}\left( \frac{a(x_{J-1/2})h_{J}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right)\)</span></td>
+<td><span class="math">\(r_a\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(b_J\)</span></td>
+<td><span class="math">\(\frac{1}{h_J} \left( \frac{a(x_{J-1/2}) h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right)\)</span></td>
+<td><span class="math">\(r_b\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\alpha_1\)</span></td>
+<td><span class="math">\(1\)</span></td>
+<td><span class="math">\(0\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\alpha_J\)</span></td>
+<td><span class="math">\(1\)</span></td>
+<td><span class="math">\(0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>As can be seen, Dirichlet conditions require minor modifications (only the component so the <span class="math">\(\alpha\)</span> matrix are changed). On the other hand, Robin boundary conditions require that the elements of the coefficient matrix are altered (however for Robin conditions the <span class="math">\(\alpha\)</span> matrix is not required).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Boundary conditions for the advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#robin-boundary-conditions-known-flux">Robin boundary conditions (known flux)</a></li>
+<li><a class="reference internal" href="#dirichlet-boundary-conditions-known-value">Dirichlet boundary conditions (known value)</a></li>
+<li><a class="reference internal" href="#general-matrix-form">General matrix form</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="advection_diffusion.html"
+                        title="previous chapter">The advection-diffusion-reaction equation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="poisson.html"
+                        title="next chapter">The Poisson equation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/advection_diffusion_boundary_conditions.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="poisson.html" title="The Poisson equation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="advection_diffusion.html" title="The advection-diffusion-reaction equation"
+             >previous</a> |</li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Daniel J Farrell.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

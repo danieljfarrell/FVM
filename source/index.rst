@@ -13,6 +13,7 @@ Contents:
    
    finite_volume_method.rst
    advection_diffusion.rst
+   advection_diffusion_boundary_conditions.rst
    poisson.rst
    implementation_advection_diffusion.rst
 

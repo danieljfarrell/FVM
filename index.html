@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Notes on implementing the finite-volume method of physical simulations &mdash; FVM Docs 0.1 documentation</title>
+    <title>Notes on implementing the finite-volume method for physical simulations &mdash; FVM Docs 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -46,19 +46,24 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="notes-on-implementing-the-finite-volume-method-of-physical-simulations">
-<h1>Notes on implementing the finite-volume method of physical simulations<a class="headerlink" href="#notes-on-implementing-the-finite-volume-method-of-physical-simulations" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="notes-on-implementing-the-finite-volume-method-for-physical-simulations">
+<h1>Notes on implementing the finite-volume method for physical simulations<a class="headerlink" href="#notes-on-implementing-the-finite-volume-method-for-physical-simulations" title="Permalink to this headline">¶</a></h1>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="finite_volume_method.html">Introduction to the Finite Volume Method (FVM)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="advection_diffusion.html">The advection-diffusion-reaction equation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#naturally-resolved-robin-boundary-conditions">Naturally resolved Robin boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#explicit-and-implicit-forms">Explicit and implicit forms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#implementing-robin-boundary-conditions">Implementing Robin boundary conditions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#implementing-dirichlet-boundary-conditions">Implementing Dirichlet boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion.html#time-stepping">Time-stepping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advection_diffusion_boundary_conditions.html">Boundary conditions for the advection-diffusion-reaction equation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion_boundary_conditions.html#robin-boundary-conditions-known-flux">Robin boundary conditions (known flux)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion_boundary_conditions.html#dirichlet-boundary-conditions-known-value">Dirichlet boundary conditions (known value)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advection_diffusion_boundary_conditions.html#general-matrix-form">General matrix form</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="poisson.html">The Poisson equation</a><ul>
@@ -95,7 +100,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Notes on implementing the finite-volume method of physical simulations</a><ul>
+<li><a class="reference internal" href="#">Notes on implementing the finite-volume method for physical simulations</a><ul>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>

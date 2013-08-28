@@ -163,8 +163,8 @@ class AdvectionDiffusionModel(object):
             return [(0,0),1+(1-self.theta)*b1(self.a, self.d, self.mesh, self.k)], [(0,1),(1-self.theta)*c1(self.a, self.d, self.mesh, self.k)]
         else:
             raise ValueError("Please choose a valid option for the `matrix` keyword, you can choose from `A` or `M`.")
-        
-     def _robin_boundary_condition_elements_right(self, matrix=None):
+    
+    def _robin_boundary_condition_elements_right(self, matrix=None):
         
         # Right hand side Robin boundary coefficients for matrix equation
         aJ = lambda a, d, m, k: k/m.h(m.J-1)*( a.m(m.J-1)*m.h(m.J-1)/(2*m.hm(m.J-1)) + d.m(m.J-1)/m.hm(m.J-1) )
@@ -418,89 +418,89 @@ class PoissonModel(object):
 if __name__ == '__main__':
     
     #faces = np.linspace(0-0.005, 2+0.005, 200)
-    faces = np.linspace(0, 2, 200)
-    pm = PoissonModel(faces, 1, -1)
-    A = pm.A_matrix()
-    d = pm.d_vector()
-    w = linalg.spsolve(A.tocsc(), d)
-    print w
-    import pylab
-    pylab.plot(pm.mesh.cells, w, "-b")
-    x = faces
-    pylab.plot(x, x**2/2 - 2*x, "-r" )
-    pylab.show()
-    x = pm.mesh.cells
-    error = w - (x**2/2 - 2*x)
-    print error
-    #error = (error / (x**2/2 - 2*x) - 1) * 100
-    pylab.plot(x, error)
-    pylab.show()
+    # faces = np.linspace(0, 2, 200)
+    # pm = PoissonModel(faces, 1, -1)
+    # A = pm.A_matrix()
+    # d = pm.d_vector()
+    # w = linalg.spsolve(A.tocsc(), d)
+    # print w
+    # import pylab
+    # pylab.plot(pm.mesh.cells, w, "-b")
+    # x = faces
+    # pylab.plot(x, x**2/2 - 2*x, "-r" )
+    # pylab.show()
+    # x = pm.mesh.cells
+    # error = w - (x**2/2 - 2*x)
+    # print error
+    # #error = (error / (x**2/2 - 2*x) - 1) * 100
+    # pylab.plot(x, error)
+    # pylab.show()
     
-    # #faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-    # faces = np.linspace(0, 1, 50)
-    # mesh =  Mesh(faces)
-    # 
-    # a = CellVariable(1, mesh=mesh) # Advection velocity
-    # d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
-    # k = 0.01                             # Time step 
-    # 
-    # model = AdvectionDiffusionModel(faces, a, d, k, discretisation="exponential")
-    # model.set_boundary_conditions(left_value=1., right_value=0.)
-    # #model.set_boundary_conditions(left_flux=0, right_flux=0)
-    # #model.set_boundary_conditions(left_value=1, right_flux=0)
-    # A = model.A_matrix()
-    # M = model.M_matrix()
-    # b = model.b_vector()
-    # 
-    # print "Peclet number", np.min(model.peclet_number()), np.max(model.peclet_number())
-    # print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
-    # 
-    # # Initial conditions
-    # w_init = 0.5*TH(mesh.cells, 0.4, 0)
-    # w_init = np.sin(np.pi*mesh.cells)**100
-    # 
-    # # Source term
-    # b[int(np.median(range(mesh.J)))] = 0.0
-    # 
-    # # matplotlib for movie export
-    # # see, http://matplotlib.org/examples/animation/moviewriter.html
-    # import matplotlib
-    # matplotlib.use("Agg")
-    # import matplotlib.pyplot as plt
-    # import matplotlib.animation as manimation
-    # print manimation.writers.__dict__
-    # FFMpegWriter = manimation.writers['ffmpeg']
-    # metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
-    # writer = FFMpegWriter(fps=15, metadata=metadata)
-    # 
-    # fig = plt.figure()
-    # l0, = plt.plot([],[], 'r-', lw=1)
-    # l1, = plt.plot([],[], 'k-o', markersize=4)
-    # plt.xlim(np.min(faces), np.max(faces))
-    # plt.ylim(-0.2,1.2)
-    # l1.set_data(mesh.cells,w_init)
-    # 
-    # # # Analytical solution for Dirichlet boundary conditions
-    # analytical_x = np.concatenate([np.array([np.min(faces)]), mesh.cells, np.array([np.max(faces)])])
-    # analytical_solution = np.concatenate([np.array([model.left_value]), (np.exp(a/d) - np.exp(mesh.cells*a/d))/(np.exp(a/d)-1), np.array([model.right_value]) ])
-    # #analytical_solution2 = np.concatenate([np.array([model.left_value]), (np.exp(a/model.d) - np.exp(mesh.cells*a/model.d))/(np.exp(a/model.d)-1), np.array([model.right_value]) ])
-    # 
-    # w = w_init
-    # with writer.saving(fig, "writer_test.mp4", 300):
-    # 
-    #     for i in range(201):
-    #         w = linalg.spsolve(A.tocsc(), M * w + b)
-    #     
-    #         if  i == 0:
-    #             l1.set_data(mesh.cells,w_init)
-    #             writer.grab_frame()
-    #         
-    #         if i %  1 == 0 or i == 0:
-    #             l1.set_data(mesh.cells,w)
-    #             #l0.set_data(analytical_x, analytical_solution)
-    #             area = np.sum(w * mesh.cell_widths)
-    #             print "#%d; t=%g; area=%g:" % (i, i*k,area)
-    #             writer.grab_frame()
+    faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
+    #faces = np.linspace(0, 1, 50)
+    mesh =  Mesh(faces)
+    
+    a = CellVariable(1, mesh=mesh) # Advection velocity
+    d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
+    k = 0.01                             # Time step 
+    
+    model = AdvectionDiffusionModel(faces, a, d, k, discretisation="exponential")
+    model.set_boundary_conditions(left_value=1., right_value=0.)
+    #model.set_boundary_conditions(left_flux=0, right_flux=0)
+    #model.set_boundary_conditions(left_value=1, right_flux=0)
+    A = model.A_matrix()
+    M = model.M_matrix()
+    b = model.b_vector()
+    
+    print "Peclet number", np.min(model.peclet_number()), np.max(model.peclet_number())
+    print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
+    
+    # Initial conditions
+    w_init = 0.5*TH(mesh.cells, 0.4, 0)
+    w_init = np.sin(np.pi*mesh.cells)**100
+    
+    # Source term
+    b[int(np.median(range(mesh.J)))] = 0.0
+    
+    # matplotlib for movie export
+    # see, http://matplotlib.org/examples/animation/moviewriter.html
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as manimation
+    print manimation.writers.__dict__
+    FFMpegWriter = manimation.writers['ffmpeg']
+    metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
+    writer = FFMpegWriter(fps=15, metadata=metadata)
+    
+    fig = plt.figure()
+    l0, = plt.plot([],[], 'r-', lw=1)
+    l1, = plt.plot([],[], 'k-o', markersize=4)
+    plt.xlim(np.min(faces), np.max(faces))
+    plt.ylim(0,1.2)
+    l1.set_data(mesh.cells,w_init)
+    
+    # # Analytical solution for Dirichlet boundary conditions
+    analytical_x = np.concatenate([np.array([np.min(faces)]), mesh.cells, np.array([np.max(faces)])])
+    analytical_solution = np.concatenate([np.array([model.left_value]), (np.exp(a/d) - np.exp(mesh.cells*a/d))/(np.exp(a/d)-1), np.array([model.right_value]) ])
+    #analytical_solution2 = np.concatenate([np.array([model.left_value]), (np.exp(a/model.d) - np.exp(mesh.cells*a/model.d))/(np.exp(a/model.d)-1), np.array([model.right_value]) ])
+    
+    w = w_init
+    with writer.saving(fig, "fvm_advection_diffusion_1.mp4", 300):
+    
+        for i in range(201):
+            w = linalg.spsolve(A.tocsc(), M * w + b)
+        
+            if  i == 0:
+                l1.set_data(mesh.cells,w_init)
+                writer.grab_frame()
+            
+            if i %  1 == 0 or i == 0:
+                l1.set_data(mesh.cells,w)
+                #l0.set_data(analytical_x, analytical_solution)
+                area = np.sum(w * mesh.cell_widths)
+                print "#%d; t=%g; area=%g:" % (i, i*k,area)
+                writer.grab_frame()
 
 
 

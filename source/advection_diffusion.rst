@@ -73,55 +73,6 @@ An approximation to the above, which does not require the evaluation of exponent
 
 This is a very elegant want to introduce adaptive upwinding or exponential fitting because it can be brought into the discretisation in an ad hoc manner. Note that for all of the adaptive expressions :math:`\kappa\rightarrow\pm1` as :math:`\mu\rightarrow\pm\infty`, and :math:`\kappa\rightarrow 0` as :math:`\mu\rightarrow 0`. This means the discretisation will automatically weight in the favour of the upwind scheme in locations where advection dominates. Conversely, where diffusion dominates the weighting factor shifts in favour of a central difference scheme.
 
-Naturally resolved Robin boundary conditions
-********************************************
-
-
-`Within the finite volume method Robin boundary conditions are naturally resolved <http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method>`_. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell :math:`\Omega_1`,
-
-.. figure:: img/boundary_cell_FVM.png
-   :scale: 100 %
-   :alt: Finite volume boundary cell at the left hand side.
-   :align: center
-
-   Finite volume boundary cell at the left hand side.
-
-.. math::
-	w_1^{\prime} =  -\frac{\mathcal{F}_{3/2}}{h_1} + \frac{\mathcal{F}_{1/2}}{h_{1}} + \bar{s}_1
-
-The Robin boundary condition specifies the flux at :math:`x_{1/2}`,
-
-.. math::
-	\mathcal{F}_{1/2} = g_{R}(x_{1/2})
-
-Therefore the boundary condition can be incorporated without invoking any information regarding the ghost cell,
-
-.. math::
-	w_1^{\prime} = \frac{w_1}{h_1}\left( \frac{-a(x_{3/2})h_{2}}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) + \frac{w_{2}}{h_1} \left( \frac{-a(x_{3/2}) h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) + \frac{g_{R}(x_L)}{h_1} + \bar{s}_1
-
-Similarly applying the same procedure to the :math:`\Omega_J` cell at the right hand side boundary,
-
-.. figure:: img/boundary_cell_FVM_rhs.png
-   :scale: 100 %
-   :alt: Finite volume boundary cell at the right hand side.
-   :align: center
-
-   Finite volume boundary cell at the right hand side.
-
-.. math::
-	w_J^{\prime} =  -\frac{\mathcal{F}_{J+1/2}}{h_J} + \frac{\mathcal{F}_{J-1/2}}{h_J} + \bar{s}_J
-
-The Robin boundary condition at the right hand side is,
-
-.. math::
-	g_{R}(x_R) = \mathcal{F}_{J+1/2}
-
-Therefore the naturally resolved boundary condition on the right hand side becomes,
-
-.. math::
-	w_J^{\prime} = \frac{w_{J-1}}{h_J}\left( \frac{a(x_{J-1/2})h_{J}}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) + \frac{w_{J}}{h_J} \left( \frac{a(x_{J-1/2}) h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) - \frac{g_{R}(x_R)}{h_J} + \bar{s}_J
-
-
 Explicit and implicit forms
 ***************************
 
@@ -153,15 +104,15 @@ The :math:`\theta`-method
 The :math:`\theta`-method is an approach which combines implicit and explicit forms into one method. It consists of writing the equation as the average of the implicit and explicit forms. If we let :math:`F_{w^{n}}` and :math:`F_{w^{n+1}}` stand for the r.h.s of the explicit and implicit forms of the equations then the :math:`\theta`-method gives,
 
 .. math::
-	w_j^{\prime} = \theta F(w^{n+1}) + (1-\theta)F(w^{n})
+	w_j^{\prime} = \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n})
 
 Setting :math:`\theta=0` recovers a fully implicit scheme while :math:`\theta=1` gives a fully explicit discretisation. The value of :math:`\theta` is not limited to just 0 or 1. It is common to set :math:`\theta=1/2`, this is called the Crank-Nicolson method. It is particularly popular for diffusion problem because it preserves the stability of the implicit form but also increases the accuracy of the time integration from first to second order (because two points in time are being averaged). For advection diffusion problems the Crank-Nicolson method is also unconditionally stable.
 
 In the above equation,
 
 .. math::
-	F_{w^{n}} = r_a w_{j-1}^{n} + r_b w_{j}^{n} + r_c w_{j+1}^{n} \\
-	F_{w^{n+1}} = r_a w_{j-1}^{n+1} + r_b w_{j}^{n+1} + r_c w_{j+1}^{n+1}
+	F(w_j^{n}) = r_a w_{j-1}^{n} + r_b w_{j}^{n} + r_c w_{j+1}^{n} \\
+	F(w_j^{n+1}) = r_a w_{j-1}^{n+1} + r_b w_{j}^{n+1} + r_c w_{j+1}^{n+1}
 
 and the coefficients are,
 
@@ -172,145 +123,51 @@ and the coefficients are,
 
 We have written the coefficients without dependence on time to simplify the notation, but the coefficients should be calculated at the same time points as their solution variable. However, the coefficients must be linear, they should not depend on the values of the solution variable.
 
-**STOPPED HERE NEED TO UPDATE THE MATRIX EXPRESSION FOR THE THE NEW SYSTEM FOR TIME ITERATION**
-
 Discretised equation in matrix form
 ***********************************
 
-Here we present a general matrix equation,
+Dropping the spatial subscripts and writing in vector form the equations becomes,
 
 .. math::
-	\boldsymbol{A}\cdot\boldsymbol{w}^{n+1} = \boldsymbol{M}\cdot\boldsymbol{w}^{n} + \boldsymbol{s} + \boldsymbol{b}
-	
-for the discretisation of the advection-diffusion equation that can be easily modified to include Robin or Dirichlet boundary conditions.
+	\frac{w^{n+1} - w^{n}}{\tau} & =  \theta F(w^{n+1}) + (1-\theta)F(w^{n})
 
-Where the left hand side is,
+where,
 
 .. math::
+    F(w^{n+1}) = M^{n+1} w^{n+1} + \theta s^{n+1} \\
+    F(w^{n}) = M^{n}w^{n} + (1-\theta) s^{n}
+    
+with the coefficient matrix,
+
+.. math::
+	M = 
 	\begin{align} 
 	\begin{pmatrix}
-	b_1 & c_1    &        &       & 0   \\
-	a_2 & 1-\theta r_b    & -\theta r_c    &       &     \\
+	r_b & r_c    &        &       & 0   \\
+	r_a & r_b    & r_c    &       &     \\
 	    & \ddots & \ddots & \ddots&     \\
-	    &        &  - \theta r_a   & 1-\theta r_b   & c_{J-1} \\
-	 0  &        &        & a_J   & b_J
-	\end{pmatrix}
-	\begin{pmatrix}
-	    w_1^{n+1} \\
-	    w_2^{n+1} \\
-	    \vdots \\
-	    w_{J-1}^{n+1} \\
-	    w_J^{n+1} \\
+	    &        &  r_a   & r_b   & r_c \\
+	 0  &        &        & r_a   & r_b
 	\end{pmatrix}
 	\end{align}
 
-and the right hand side,
+The :math:`r`-terms have be previously defined as the coefficients that result from the discretisation method. Note that the subscripts for the :math:`r`-terms have been dropped to simplify the notation, but they are functions of space. For example, terms in the first row should be calculated with :math:`j=1`, in the second with :math:`j=2` etc.
+
+Time-stepping
+*************
+
+Provided the equation is linear, meaning that the coefficients, nor the reaction term depend on the solution variable a time-stepping approach can be used to solve the equation. We will rearrange the last equation into the form of a linear system :math:`A\cdot x = d`. Firstly lets move all terms involving future time points the l.h.s,
 
 .. math::
-	\begin{align}
-	\begin{pmatrix}
-	b_1 & c_1   &        &       & 0   \\
-	a_2 & 1+(1-\theta)r_b    & (1-\theta)r_c    &       &     \\
-	    & \ddots & \ddots & \ddots&     \\
-	    &        &  (1-\theta)r_a   & 1+(1-\theta)r_b   & c_{J-1} \\
-	 0  &        &        & a_J  & b_J
-	\end{pmatrix}
-	\begin{pmatrix}
-	    w_1^n \\
-	    w_2^n \\
-	    \vdots \\
-	    w_{J-1}^n \\
-	    w_J^n \\
-	\end{pmatrix} + k
-	\begin{pmatrix}
-	    s_1^n \\
-	    s_2^n \\
-	    \vdots \\
-	    s_{J-1}^n \\
-	    s_J^n\\
-	\end{pmatrix} + 
-	\begin{pmatrix}
-	    c_1 \\ %k g_R(x_L)/h_1 \\
-	    c_2 \\%0 \\
-	    \vdots \\
-	    c_{J-1} \\%0 \\
-	    c_{J} \\%-k g_R(x_R)/h_J\\
-	\end{pmatrix}
-	\end{align}
+    w^{n+1} - \theta \tau F(w^{n+1}) = w^{n} + (1-\theta) F(w^{n+1})
 
-Notice the terms in the top-left and bottom-right corners of the matrices have been modified, these are the terms that need to be changed to implement the boundary conditions. In addition to altering the matrix equation, a new vector as been introduced on the right hand side which carrier the boundary condition values.
-
-Implementing Robin boundary conditions
-**************************************
-
-To implement Robin boundary conditions the terms belonging to :math:`\boldsymbol{A}` become the following,
+Replacing the :math:`F` terms with the full matrix expressions and factoring yields,
 
 .. math::
-	\begin{align}
-	b_1 & = 1 - \theta \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) \\
-	c_1 & = - \theta \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) \\
-	a_2 & = -\theta r_a \\
-	c_{J-1} & = -\theta r_c \\
-	a_J & = -\theta \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-	b_J & = 1-\theta \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-	\end{align}
+    \underbrace{(I - \theta\tau M^{n+1})}_{A}\underbrace{w^{n+1}}_{x} = \underbrace{(I + (1-\theta)\tau M^{n})w^{n}}_{d}
 
-The terms belonging to :math:`\boldsymbol{M}` become the following, 
+Time-stepping involves solving this equation iteratively. First the initial conditions :math:`w^0` is used to calculate the solution variable at the next point in time :math:`w^1`, then values of the solution variable are updated such that :math:`w^1` is used to calculate :math:`w^2`, and so on and so forth.
 
-.. math::
-	\begin{align}
-	b_1 & = 1 + (1 - \theta) \frac{k}{h_1}\left( -\frac{a(x_{3/2})h_2}{2h_{+}} - \frac{d(x_{3/2})}{h_{+}} \right) \\
-	c_1 & = (1 - \theta)\frac{k}{h_1}\left( -\frac{a(x_{3/2})h_1}{2h_{+}} + \frac{d(x_{3/2})}{h_{+}} \right) \\
-	a_2 & = (1 - \theta) r_a \\
-	c_{J-1} & = (1 - \theta) r_c \\
-	a_J & = (1 - \theta)\frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_J}{2h_{-}} + \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-	b_J & = 1 + (1 - \theta) \frac{k}{h_J}\left( \frac{a(x_{J-1/2})h_{J-1}}{2h_{-}} - \frac{d(x_{J-1/2})}{h_{-}} \right) \\
-	\end{align}
-	
-The elements of the boundary condition vector are all zero with the following exception,
-
-.. math::
-	c_1 = k\frac{g_D(x_{L})}{h_1} \\
-	c_J = k\frac{g_D(x_{R})}{h_J}
-
-Implementing Dirichlet boundary conditions
-******************************************
-
-To implement Dirichlet boundary conditions the terms belonging to :math:`A` become the following,
-
-.. math::
-	\begin{align}
-	b_1 & = 1 \\
-	c_1 & = 0 \\
-	a_2 & = 0 \\
-	c_{J-1} & = 0\\
-	a_J & = 0 \\
-	b_J & = 1 \\
-	\end{align}
-
-The terms belonging to :math:`M` become the following,
-
-.. math::
-	\begin{align}
-	b_1 & = 0 \\
-	c_1 & = 0 \\
-	a_2 & = 0 \\
-	c_{J-1} & = 0\\
-	a_J & = 0 \\
-	b_J & = 0 \\
-	\end{align}
-	
-The elements of the boundary condition vector are all zero with the exception of the following elements,
-
-.. math::
-	\begin{align}
-	c_1 & = g_D(x_{L}) \\
-	c_J & = r_a g_D(x_{L}) \\
-	c_{J-1} & = r_c g_D(x_{R}) \\
-	c_J & = g_D(x_{R}) \\
-	\end{align}
-
-**NB** it is *not* an error that the time step is *not* included in the boundary condition vector.
 
 Aside :math:`-` Linear interpolation between cell centre and face values
 =========================================================================

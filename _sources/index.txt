@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Notes on implementing the finite-volume method of physical simulations
-======================================================================
+Notes on implementing the finite-volume method for physical simulations
+=======================================================================
 
 Contents:
 
@@ -13,6 +13,7 @@ Contents:
    
    finite_volume_method.rst
    advection_diffusion.rst
+   advection_diffusion_boundary_conditions.rst
    poisson.rst
    implementation_advection_diffusion.rst
 

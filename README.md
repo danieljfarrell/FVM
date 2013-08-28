@@ -20,11 +20,7 @@ Ideas I wanted to explore:
  * How to include Dirichlet boundary conditions.
  * How to export a movie of time-dependent simulations.
  
-Ideas remaining to be explored:
-
- * How can classes be used to reduce code complexity.
-  - I am really keen to avoid excessive use of classes with numerical code, however, where they can reduce complexity they are definitely worth using.
- * How can the exported movie be viewed while it is being written to?
+ 
   
   
   

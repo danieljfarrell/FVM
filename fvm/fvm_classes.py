@@ -89,13 +89,12 @@ class CellVariable(np.ndarray):
 class AdvectionDiffusionModel(object):
     
     """A model for the advection-diffusion equation"""
-    def __init__(self, faces, a, d, k, discretisation="central"):
+    def __init__(self, faces, a, d, discretisation="central"):
         super(AdvectionDiffusionModel, self).__init__()
         
         self.mesh = Mesh(faces)
         self.a = CellVariable(a, mesh=self.mesh)
         self.d = CellVariable(d, mesh=self.mesh)
-        self.k = k
         self.discretisation = discretisation
         
         # Check Peclet number
@@ -106,12 +105,12 @@ class AdvectionDiffusionModel(object):
         elif np.max(np.abs(mu)) > 2:
             warnings.warn("\n\nThe Peclet number (%g) has exceeded the maximum value of mod 2 for the central discretisation scheme." % (np.max(mu),) )
         
-        # Check CFL condition
-        CFL = self.CFL_condition()
-        if np.max(np.abs(CFL)) > 0.5 and np.max(np.abs(CFL)) < 1.0:
-            warnings.warn("\n\nThe CFL condition value is %g, it is getting close to the upper limit." % (np.max(CFL),) )
-        elif np.max(np.abs(CFL)) > 1:
-            warnings.warn("\n\nThe CFL condition value is %g, and has gone above the upper limit." % (np.max(CFL),) )
+        # # Check CFL condition
+        # CFL = self.CFL_condition()
+        # if np.max(np.abs(CFL)) > 0.5 and np.max(np.abs(CFL)) < 1.0:
+        #     warnings.warn("\n\nThe CFL condition value is %g, it is getting close to the upper limit." % (np.max(CFL),) )
+        # elif np.max(np.abs(CFL)) > 1:
+        #     warnings.warn("\n\nThe CFL condition value is %g, and has gone above the upper limit." % (np.max(CFL),) )
             
         if discretisation == "exponential":
             self.kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu;
@@ -135,8 +134,8 @@ class AdvectionDiffusionModel(object):
     def peclet_number(self):
         return self.a * self.mesh.cell_widths / self.d
     
-    def CFL_condition(self):
-        return self.a * self.k / self.mesh.cell_widths
+    def CFL_condition(self, tau):
+        return self.a * tau/ self.mesh.cell_widths
         
     def set_boundary_conditions(self, left_flux=None, right_flux=None, left_value=None, right_value=None ):
         """Make sure this function is used sensibly otherwise the matrix will be ill posed."""
@@ -265,7 +264,6 @@ class AdvectionDiffusionModel(object):
     def coefficient_matrix(self):
         """Returns the coefficient matrix which appears on the left hand side."""
         J = self.mesh.J
-        k = self.k
         m = self.mesh
         a = self.a
         d = self.d
@@ -305,7 +303,6 @@ class AdvectionDiffusionModel(object):
         # Apply boundary conditions elements
         bcs = left_bc_elements + right_bc_elements
         for inx, value in bcs:
-            print inx, value
             A[inx] = value
         return dia_matrix(A)
 
@@ -329,7 +326,6 @@ if __name__ == '__main__':
         series =  np.abs(series - 1)
         series_diff = np.gradient(series)
         inx = np.where(series_diff > min_spacing)
-        print inx
         series_diff[inx] = min_spacing
         series_reconstruct = np.cumsum(series_diff)
         if np.min(series_reconstruct) != 0.0:

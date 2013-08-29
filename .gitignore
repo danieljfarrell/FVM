@@ -1,3 +1,10 @@
+# Folders #
+###########
+build/
+dev/
+dist/
+output/
+
 # Compiled source #
 ###################
 *.com
@@ -31,6 +38,7 @@
 *.log
 *.sql
 *.sqlite
+*.egg-info
 
 # OS generated files #
 ######################

@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "fvm",
-    version = "0.1",
+    version = "0.2",
     author = "Daniel J Farrell",
     author_email = "daniel.james.farrell@gmail.com",
     description = ("Examples of solving conservation problems using the finite volume method"),

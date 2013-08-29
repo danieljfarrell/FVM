@@ -13,7 +13,7 @@ setup(
     version = "0.1",
     author = "Daniel J Farrell",
     author_email = "daniel.james.farrell@gmail.com",
-    description = ("Examples of solving conservation problems using the finite volume method")
+    description = ("Examples of solving conservation problems using the finite volume method"),
     license = "BSD",
     keywords = "finite volume numerical partial differential equations",
     url = "http://github.com/danieljfarrell/FVM",

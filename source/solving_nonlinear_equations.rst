@@ -50,6 +50,9 @@ Note the poor agreement with the analytical solution for large values of times. 
 Newton iteration
 ****************
 
+.. warning::
+	Documentation for the rest of this page is not yet ready to publish.
+
 .. figure:: img/Newton_solution_fvm.png
    :scale: 50 %
    :alt: IMEX solution of Fishers' equation.

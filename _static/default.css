@@ -4,7 +4,7 @@
  *
  * Sphinx stylesheet -- default theme.
  *
- * :copyright: Copyright 2007-2013 by the Sphinx team, see AUTHORS.
+ * :copyright: Copyright 2007-2011 by the Sphinx team, see AUTHORS.
  * :license: BSD, see LICENSE for details.
  *
  */
@@ -14,16 +14,14 @@
 /* -- page layout ----------------------------------------------------------- */
 
 body {
-    font-family: sans-serif;
-    font-size: 100%;
-    background-color: #11303d;
-    color: #000;
+    font-family: "Migu 1VS",sans-serif;
+    background-color: #fdf6e3;
     margin: 0;
     padding: 0;
 }
 
 div.document {
-    background-color: #1c4e63;
+    background-color: #eee8d5;
 }
 
 div.documentwrapper {
@@ -36,13 +34,14 @@ div.bodywrapper {
 }
 
 div.body {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: #fdf6e3;
+    color: #657b83;
     padding: 0 20px 30px 20px;
 }
 
 div.footer {
-    color: #ffffff;
+    color: #839496;
+    background: #002b36 ;
     width: 100%;
     padding: 9px 0 9px 0;
     text-align: center;
@@ -50,26 +49,21 @@ div.footer {
 }
 
 div.footer a {
-    color: #ffffff;
+    color: #586e75;
     text-decoration: underline;
 }
 
 div.related {
-    background-color: #133f52;
+    background-color: #eee8d5;
     line-height: 30px;
-    color: #ffffff;
-}
-
-div.related a {
-    color: #ffffff;
+    color: ;
 }
 
 div.sphinxsidebar {
 }
 
 div.sphinxsidebar h3 {
-    font-family: 'Trebuchet MS', sans-serif;
-    color: #ffffff;
+    color: #657b83;
     font-size: 1.4em;
     font-weight: normal;
     margin: 0;
@@ -77,12 +71,11 @@ div.sphinxsidebar h3 {
 }
 
 div.sphinxsidebar h3 a {
-    color: #ffffff;
+    color: #657b83;
 }
 
 div.sphinxsidebar h4 {
-    font-family: 'Trebuchet MS', sans-serif;
-    color: #ffffff;
+    color: #657b83;
     font-size: 1.3em;
     font-weight: normal;
     margin: 5px 0 0 0;
@@ -90,7 +83,7 @@ div.sphinxsidebar h4 {
 }
 
 div.sphinxsidebar p {
-    color: #ffffff;
+    color: #657b83;
 }
 
 div.sphinxsidebar p.topless {
@@ -100,30 +93,18 @@ div.sphinxsidebar p.topless {
 div.sphinxsidebar ul {
     margin: 10px;
     padding: 0;
-    color: #ffffff;
+    color: #657b83;
 }
-
-div.sphinxsidebar a {
-    color: #98dbcc;
-}
-
-div.sphinxsidebar input {
-    border: 1px solid #98dbcc;
-    font-family: sans-serif;
-    font-size: 1em;
-}
-
-
 
 /* -- hyperlink styles ------------------------------------------------------ */
 
 a {
-    color: #355f7c;
+    color: #268bd2;
     text-decoration: none;
 }
 
 a:visited {
-    color: #355f7c;
+    color: #6c71c4;
     text-decoration: none;
 }
 
@@ -141,11 +122,8 @@ div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    font-family: 'Trebuchet MS', sans-serif;
-    background-color: #f2f2f2;
     font-weight: normal;
-    color: #20435c;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #93a1a1;
     margin: 20px -20px 10px -20px;
     padding: 3px 0 3px 10px;
 }
@@ -158,20 +136,18 @@ div.body h5 { font-size: 110%; }
 div.body h6 { font-size: 100%; }
 
 a.headerlink {
-    color: #c60f0f;
     font-size: 0.8em;
     padding: 0 4px 0 4px;
     text-decoration: none;
 }
 
 a.headerlink:hover {
-    background-color: #c60f0f;
     color: white;
 }
 
 div.body p, div.body dd, div.body li {
     text-align: justify;
-    line-height: 130%;
+    line-height: 150%;
 }
 
 div.admonition p.admonition-title + p {
@@ -191,8 +167,11 @@ div.admonition ul, div.admonition ol {
 }
 
 div.note {
-    background-color: #eee;
-    border: 1px solid #ccc;
+    background: #ffffcc url(note.png) no-repeat 10px 6px;
+    border: 2px solid #b58900;
+    border-right: 0;
+    border-left: 0;
+    padding: 10px 15px 10px 60px;
 }
 
 div.seealso {
@@ -201,12 +180,19 @@ div.seealso {
 }
 
 div.topic {
-    background-color: #eee;
+    background: #eee url(topic.png) no-repeat 10px 6px;
+    border: 1px solid #ddb;
+    border-left: none;
+    border-right: none;
+    padding: 10px 15px 10px 60px;
 }
 
 div.warning {
-    background-color: #ffe4e4;
-    border: 1px solid #f66;
+    background: #ffe4e4 url(warning.png) no-repeat 10px 6px;
+    border: 2px solid #dc322f;
+    border-right: 0;
+    border-left: 0;
+    padding: 10px 20px 10px 60px;
 }
 
 p.admonition-title {
@@ -218,19 +204,17 @@ p.admonition-title:after {
 }
 
 pre {
+    font-family: "Ricty","Migu 1M",monospace;
     padding: 5px;
-    background-color: #eeffcc;
-    color: #333333;
     line-height: 120%;
-    border: 1px solid #ac9;
-    border-left: none;
-    border-right: none;
+    border-top: solid 1px #93a1a1;
+    border-bottom: solid 1px #93a1a1;
 }
 
 tt {
     background-color: #ecf0f3;
     padding: 0 1px 0 1px;
-    font-size: 0.95em;
+    font-family: "Ricty","Migu 1M",monospace;
 }
 
 th {
@@ -246,11 +230,33 @@ th {
 }
 
 .viewcode-back {
-    font-family: sans-serif;
+    font-family: "Ricty","Migu 1M",monospace;;
 }
 
 div.viewcode-block:target {
     background-color: #f4debf;
     border-top: 1px solid #ac9;
     border-bottom: 1px solid #ac9;
+}
+
+p.admonition-title {
+    display: none;
+}
+table.field-list td, table.field-list th {
+    border: solid 1px #93a1a1 !important;
+    font-size: 80%;
+}
+th.field-name {
+    background: #eee8d5;
+    }
+img.logo {
+    max-width: 200px;
+}
+table.highlighttable {
+    font-family: "Ricty","Migu 1M",monospace;
+}
+div.sidebar {
+    font-size: 80%;
+    background: #eee url(information.png) no-repeat 10px 6px;
+    padding: 10px 15px 10px 50px;
 }

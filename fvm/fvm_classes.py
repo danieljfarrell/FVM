@@ -90,6 +90,8 @@ class AdvectionDiffusionModel(object):
     
     """A model for the advection-diffusion equation"""
     def __init__(self, faces, a, d, discretisation="central"):
+        
+        print "moo~"
         super(AdvectionDiffusionModel, self).__init__()
         
         self.mesh = Mesh(faces)
@@ -338,14 +340,14 @@ if __name__ == '__main__':
     #print faces.shape, faces
     
     #faces = np.concatenate((np.array([-0.5]), np.sort(np.random.uniform(-0.5, 1, 50)), np.array([1])))
-    #faces = np.linspace(0, 1, 50)
-    faces = np.concatenate([np.linspace(0, 0.99, 50), np.logspace(np.log10(0.991), np.log10(1.0), 100)])
+    faces = np.linspace(0, 1, 200)
+    #faces = np.concatenate([np.linspace(0, 0.99, 50), np.logspace(np.log10(0.991), np.log10(1.0), 100)])
     mesh =  Mesh(faces)
     
     a = CellVariable(1, mesh=mesh)    # Advection velocity
     d = CellVariable(1e-3, mesh=mesh) # Diffusion coefficient
-    k = 0.01                          # Time step 
-    theta = 1.0
+    k = 0.0005                         # Time step 
+    theta = 0.5
     left_value = 1.0
     #left_flux = 0.0
     right_flux = 0.0
@@ -360,7 +362,7 @@ if __name__ == '__main__':
     #s[int(np.median(range(mesh.J)))] = 0.0
     
     
-    model = AdvectionDiffusionModel(faces, a, d, k, discretisation="exponential")
+    model = AdvectionDiffusionModel(faces, a, d, discretisation="exponential")
     model.set_boundary_conditions(left_value=1., right_value=0.)
     #model.set_boundary_conditions(left_flux=left_flux, right_flux=left_flux)
     M = model.coefficient_matrix()
@@ -373,7 +375,7 @@ if __name__ == '__main__':
     d = (I + k*(1-theta)*alpha*M)*w_init + beta
     
     print "Peclet number", np.min(model.peclet_number()), np.max(model.peclet_number())
-    print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
+    #print "CFL condition", np.min(model.CFL_condition()), np.max(model.CFL_condition())
     
     # matplotlib for movie export
     # see, http://matplotlib.org/examples/animation/moviewriter.html
@@ -400,8 +402,9 @@ if __name__ == '__main__':
     
     w = w_init
     with writer.saving(fig, "fvm_advection_diffusion_1.mp4", 300):
-    
-        for i in range(201):
+        
+        data = [mesh.cells]
+        for i in range(401):
             #w = linalg.spsolve(A.tocsc(), M * w + s)
             d = (I + k*(1-theta)*alpha*M)*w + beta
             w = linalg.spsolve(A, d)
@@ -410,12 +413,33 @@ if __name__ == '__main__':
                 l1.set_data(mesh.cells,w_init)
                 writer.grab_frame()
             
-            if i %  1 == 0 or i == 0:
+            if i % 50 == 0 or i == 0:
                 l1.set_data(mesh.cells,w)
                 #l0.set_data(analytical_x, analytical_solution)
                 area = np.sum(w * mesh.cell_widths)
                 print "#%d; t=%g; area=%g:" % (i, i*k,area)
                 writer.grab_frame()
+                data.append(np.asarray(w))
+    
+    import pylab
+    slices = data[1::2]
+    x = data[0]
+    for i, slice_f in enumerate(slices):
+        fraction =( i+1) / len(slices)
+        print fraction
+        pylab.plot(x, slice_f, "-o", color=pylab.cm.Blues(1-fraction))
+    
+    from matplotlib import rc
+    rc('font',**{'family':'serif','serif':['Palatino']})
+    rc('text', usetex=True)
+    pylab.title("Time stepping the linear advection-diffusion equation")
+    pylab.xlabel("x")
+    pylab.ylabel("w(x,t)")
+    pylab.ylim(ymin=0.0, ymax=1.2)
+    pylab.savefig("linear_advection_diffusion_IMEX.pdf")
+    pylab.show()
+    
+    np.savetxt("data.txt", np.asarray(np.matrix(data).transpose()))
 
 
 

@@ -11,9 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   finite_volume_method.rst
+   overview.rst
    advection_diffusion.rst
    advection_diffusion_boundary_conditions.rst
+   solving_nonlinear_equations.rst
    poisson.rst
    implementation_advection_diffusion.rst
 

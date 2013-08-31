@@ -11,12 +11,15 @@ where :math:`\mathcal{F} = au - du_x`. This expression holds over the whole doma
 .. math::
 	\int_{x_{j-1/2}}^{x_{j+1/2}} u_t~dx = \int_{x_{j-1/2}}^{x_{j+1/2}} (\mathcal{-F})_x~dx + \int_{x_{j-1/2}}^{x_{j+1/2}} s(x,t,u)~dx
 
-If we now use :math:`w` to represent the cell averages then we don't have to perform the actual integrations,
+If we now use :math:`w` and :math:`\bar{s}` to represent the cell averages of the solution variable and reaction term then we don't have to perform any actual integrations. The fundamental quantity we will use in the discretised equations is a cell average,
 
 .. math::
 	w_j^{\prime} =  -\frac{\mathcal{F}_{j+1/2}}{h_j} + \frac{\mathcal{F}_{j-1/2}}{h_{j}} + \bar{s}_j
 
-For the advection component of the flux we will use a linear interpolation (see the next section) to determine the contribution at the cell faces, and for the diffusion component with will use a simple cell average,
+.. note::
+	In the above we *can* perform the integration of the flux term. Integrating the divergence of the flux over the unit cell simply gives use the flux at the cell faces, :math:`\int_{x_{j-1/2}}^{x_{j+1/2}} (\mathcal{-F})_x~dx = \left[ \mathcal{-F} \right]_{x_{j-1/2}}^{x_{j+1/2}}`. Because we want the cell average we divide by the cell width :math:`h_j`. In three dimension we would divide by the volume of the cell, hence the name, finite volume method.
+	
+For the advection component of the flux we will use a linear interpolation (see :ref:`label-interpolation-aside`) to determine the contribution at the cell faces, and for the diffusion component with will use a simple cell average,
 
 .. math::
 	\mathcal{F}_{j+\frac{1}{2}} = a_{j+\frac{1}{2}}\left( \frac{h_{j+1}}{2h_{+}} w_j + \frac{h_j}{2h_{+}} w_{j+1} \right) - d_{j+\frac{1}{2}} \frac{w_{j+1}-w_j}{h_{+}}
@@ -37,8 +40,16 @@ Substituting the definition of the fluxes into the above equation yields,
 
 .. math::
 	w_j^{\prime} = \frac{w_{j-1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) + \frac{w_j}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{w_{j+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)
+	:label: eq1
 
-This equation is the *semi-discrete* form because the equation has not been discretised in time.
+This equation is the *semi-discrete* form because the equation has not been discretised in time. 
+
+For convenience we will simply write the r.h.s. of :eq:`eq1` as,
+
+.. math::
+	w_j^{\prime} = F(w)
+
+where it is understood that :math:`w = (w_{j-1}, w_j, w_{j+1})` stands for the discretisation stencil.
 
 Adaptive upwinding & exponential fitting
 ****************************************
@@ -81,7 +92,7 @@ In the discussion so far we have been ignoring one important deal: at what *time
 Moreover, if we choose the r.h.s to be evaluated at the *present* time step, :math:`t_n` this is known as an *explicit* method,
 
 .. math::
-	w_j^{\prime} = \frac{w_{j-1}^{n}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}},t_n) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}}, t_n)}{h_{-}}\right) + \frac{w_j^n}{h_j}\left( \frac{a(x_{j-\frac{1}{2}},t_n)h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}},t_n)h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}},t_n)}{h_{-}} - \frac{d(x_{j+\frac{1}{2}},t_n)}{h_{+}}  \right) + \frac{w_{j+1}^{n+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}},t_n)h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}},t_n)}{h_{+}} \right)
+	w_j^{\prime} = F(w^n)
 
 Explicit methods are very simple. Starting with initial conditions at time :math:`t_n`, the above equation can be rearranged to find the solution variable :math:`w_j^{n+1}` at the future time step, :math:`t_{n+1}`.
 
@@ -90,11 +101,12 @@ However the downside of using explicit methods is that they are often numericall
 Fortunately there is an second alternative, we can choice to write the r.h.s of the equation at the *future* time step, :math:`t_{n+1}`, this is known as an *implicit* method,
 
 .. math::
-	w_j^{\prime} = \frac{w_{j-1}^{n+1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}},t_{n+1}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}}, t_{n+1})}{h_{-}}\right) + \frac{w_j^{n+1}}{h_j}\left( \frac{a(x_{j-\frac{1}{2}},t_{n+1})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}},t_{n+1})h_{j+1}}{2h_{+}} - 	\frac{d(x_{j-\frac{1}{2}},t_{n+1})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}},t_{n+1})}{h_{+}}  \right) + \frac{w_{j+1}^{n+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}},t_{n+1})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}},t_{n+1})}{h_{+}} \right)
+	w_j^{\prime} = F(w^{n+1})
 
 Explicit methods are significantly more numerically robust, however they pose a problem, how does one write the equations because the solution variable at the future time step :math:`w^{n+1}` is unknown? The answer is that at each time step we must solve a linear system of equation to find :math:`w^{n+1}`. 
 
-Moreover, we have discretised a continuous PDE into :math:`J` equations and :math:`J` unknowns (the solution variables), therefore it is possible to solve this set of equations to find the unknown :math:`w^{n+1}` terms. If the equations are linear, that is to say that they can be written in matrix form *and* the variables of the coefficients do not depend on the future state of the system, then this amounts to solving a linear system of the form :math:`A\cdot x = d`. However, if the equations are nonlinear or the coefficients depend on the future state of the system this approach cannot be used, and the solution variable :math:`w^{n+1}` can only be found by an iterative procedure for example Newton-Raphson method.
+.. note::
+	For the **linear** advection-diffusion-reaction equation implicit methods are simply to implement even though the computation cost is increases. One must simply write the equation in the linear form :math:`A\cdot x = d` and solve for :math:`x` which is the solution variable at the future time step. However if the equations are non-linear then implicit methods pose problem because the equation **cannot** be written in linear form. In these situations are there are a number of techniques that are used but they all most use a iterative procedure, such as a Newton-Raphson method, to solve the equations.
 
 The following section assumes that the equation is linear.
 
@@ -134,8 +146,8 @@ Dropping the spatial subscripts and writing in vector form the equations becomes
 where,
 
 .. math::
-    F(w^{n+1}) = M^{n+1} w^{n+1} + \theta s^{n+1} \\
-    F(w^{n}) = M^{n}w^{n} + (1-\theta) s^{n}
+    F(w^{n+1}) = M^{n+1} w^{n+1} + s^{n+1} \\
+    F(w^{n}) = M^{n}w^{n} + s^{n}
     
 with the coefficient matrix,
 
@@ -153,8 +165,8 @@ with the coefficient matrix,
 
 The :math:`r`-terms have be previously defined as the coefficients that result from the discretisation method. Note that the subscripts for the :math:`r`-terms have been dropped to simplify the notation, but they are functions of space. For example, terms in the first row should be calculated with :math:`j=1`, in the second with :math:`j=2` etc.
 
-Time-stepping
-*************
+Time-stepping the linear advection-diffusion-reaction equation
+**************************************************************
 
 Provided the equation is linear, meaning that the coefficients, nor the reaction term depend on the solution variable a time-stepping approach can be used to solve the equation. We will rearrange the last equation into the form of a linear system :math:`A\cdot x = d`. Firstly lets move all terms involving future time points the l.h.s,
 
@@ -166,10 +178,19 @@ Replacing the :math:`F` terms with the full matrix expressions and factoring yie
 .. math::
     \underbrace{(I - \theta\tau M^{n+1})}_{A}\underbrace{w^{n+1}}_{x} = \underbrace{(I + (1-\theta)\tau M^{n})w^{n}}_{d}
 
-Time-stepping involves solving this equation iteratively. First the initial conditions :math:`w^0` is used to calculate the solution variable at the next point in time :math:`w^1`, then values of the solution variable are updated such that :math:`w^1` is used to calculate :math:`w^2`, and so on and so forth.
+Time-stepping involves solving this equation iteratively. First the initial conditions :math:`w^0` is used to calculate the solution variable at the next point in time :math:`w^1`, then values of the solution variable are updated such that :math:`w^1` is used to calculate :math:`w^2`, and so on and so forth. This procedure is shown in the Figure below,
 
+.. figure:: img/time_stepping_linear_advection_diffusion.png
+   :scale: 50 %
+   :alt: Time stepping the linear advection-diffusion equation.
+   :align: center
 
-Aside :math:`-` Linear interpolation between cell centre and face values
+.. note::
+	Parameters used for this simulation. :math:`a=1`, :math:`d=1\times 10^{-3}`, :math:`h=5 \times 10^{-3}`, :math:`\tau=5 \times 10^{-4}` with exponentially fitted discretisation. The initial and boundary conditions where, :math:`u(x,t_{0}) =sin(\pi x)^{100}` with :math:`u(x_1)=1` and :math:`u_x(x_J)=0`. The equation was time stepped for 400 iterations, the plots so the solution at times :math:`t=0,0.05,0.1,0.15,0.2`.
+
+.. _label-interpolation-aside:
+
+Aside: Linear interpolation between cell centre and face values
 =========================================================================
 
 In general, linear interpolation between two points :math:`(x_0, x_1)` can be used to find the value of a function at :math:`f(x)`,

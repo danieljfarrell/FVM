@@ -1,55 +1,208 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!DOCTYPE html>
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     
     <title>The advection-diffusion-reaction equation &mdash; FVM Docs 0.1 documentation</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+<!--[if IE 7]>
+<link rel="stylesheet" href="_static/css/font-awesome-ie7.min.css">
+<![endif]-->
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+}
+</style>
+<link rel="stylesheet" href="_static/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap-responsive.min.css" type="text/css" />
     
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    '',
+            VERSION:     '0.1',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+<script type="text/javascript" src="_static/js/jquery.min.js"></script>
+<script type="text/javascript" src="_static/underscore.js"></script>
+<script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="_static/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('.show-sidebar').click(function(e) {
+       e.preventDefault();
+       if ($(".show-sidebar").html() == "Open Table Of Contents") {
+          $('.for-mobile').removeClass('hidden-phone');
+          $(".show-sidebar").html("Close Table Of Contents");
+       } else {
+          $(".show-sidebar").html("Open Table Of Contents");
+       }
+    });
+  });
+</script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
     <link rel="next" title="Boundary conditions for the advection-diffusion-reaction equation" href="advection_diffusion_boundary_conditions.html" />
-    <link rel="prev" title="Introduction to the Finite Volume Method (FVM)" href="finite_volume_method.html" /> 
+    <link rel="prev" title="Overview" href="overview.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="advection_diffusion_boundary_conditions.html" title="Boundary conditions for the advection-diffusion-reaction equation"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="finite_volume_method.html" title="Introduction to the Finite Volume Method (FVM)"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+    <div class="navbar navbar-fixed-top ">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="index.html">FVM Docs 0.1 documentation</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              
+                <li>
+                <a href="genindex.html" title="General Index" accesskey="I">index</a>
+                </li>
+                <li>
+                <a href="advection_diffusion_boundary_conditions.html" title="Boundary conditions for the advection-diffusion-reaction equation" accesskey="N">next</a>
+                </li>
+                <li>
+                <a href="overview.html" title="Overview" accesskey="P">previous</a>
+                </li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+    <!-- container -->
+    <div class="container-fluid">
+
+
+      
+      <div class="row-fluid hidden-desktop hidden-tablet">
+      
+<div class="span3 ">
+  <a class="visible-phone btn btn-small show-sidebar" data-toggle="collapse" data-target=".for-mobile">Open Table Of Contents</a>
+  <div class="for-mobile sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
+<li><a class="reference internal" href="#explicit-and-implicit-forms">Explicit and implicit forms</a></li>
+<li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
+<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
+<li><a class="reference internal" href="#time-stepping-the-linear-advection-diffusion-reaction-equation">Time-stepping the linear advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#aside-linear-interpolation-between-cell-centre-and-face-values">Aside: Linear interpolation between cell centre and face values</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="advection_diffusion_boundary_conditions.html"
+                        title="next chapter">Boundary conditions for the advection-diffusion-reaction equation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/advection_diffusion.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div>
+      </div>
+      
+
+      <!-- row -->
+      <div class="row-fluid">
+         
+<div class="span3 visible-desktop visible-tablet">
+  <div class=" sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
+<li><a class="reference internal" href="#explicit-and-implicit-forms">Explicit and implicit forms</a></li>
+<li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
+<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
+<li><a class="reference internal" href="#time-stepping-the-linear-advection-diffusion-reaction-equation">Time-stepping the linear advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#aside-linear-interpolation-between-cell-centre-and-face-values">Aside: Linear interpolation between cell centre and face values</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="advection_diffusion_boundary_conditions.html"
+                        title="next chapter">Boundary conditions for the advection-diffusion-reaction equation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/advection_diffusion.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="span9">
+          <div class="document">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
   <div class="section" id="the-advection-diffusion-reaction-equation">
 <h1>The advection-diffusion-reaction equation<a class="headerlink" href="#the-advection-diffusion-reaction-equation" title="Permalink to this headline">¶</a></h1>
 <p>The advection-diffusion-reaction equation (also called the continuity equation in semiconductor physics) in flux form, is given by,</p>
@@ -58,10 +211,14 @@
 <p>where <span class="math">\(\mathcal{F} = au - du_x\)</span>. This expression holds over the whole domain, therefore it must also hold over a subdomain <span class="math">\(\Omega_j=(x_{j-1/2}, x_{j+1/2})\)</span>. Integrating over the subdomain, or cell, gives,</p>
 <div class="math">
 \[\int_{x_{j-1/2}}^{x_{j+1/2}} u_t~dx = \int_{x_{j-1/2}}^{x_{j+1/2}} (\mathcal{-F})_x~dx + \int_{x_{j-1/2}}^{x_{j+1/2}} s(x,t,u)~dx\]</div>
-<p>If we now use <span class="math">\(w\)</span> to represent the cell averages then we don&#8217;t have to perform the actual integrations,</p>
+<p>If we now use <span class="math">\(w\)</span> and <span class="math">\(\bar{s}\)</span> to represent the cell averages of the solution variable and reaction term then we don&#8217;t have to perform any actual integrations. The fundamental quantity we will use in the discretised equations is a cell average,</p>
 <div class="math">
 \[w_j^{\prime} =  -\frac{\mathcal{F}_{j+1/2}}{h_j} + \frac{\mathcal{F}_{j-1/2}}{h_{j}} + \bar{s}_j\]</div>
-<p>For the advection component of the flux we will use a linear interpolation (see the next section) to determine the contribution at the cell faces, and for the diffusion component with will use a simple cell average,</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the above we <em>can</em> perform the integration of the flux term. Integrating the divergence of the flux over the unit cell simply gives use the flux at the cell faces, <span class="math">\(\int_{x_{j-1/2}}^{x_{j+1/2}} (\mathcal{-F})_x~dx = \left[ \mathcal{-F} \right]_{x_{j-1/2}}^{x_{j+1/2}}\)</span>. Because we want the cell average we divide by the cell width <span class="math">\(h_j\)</span>. In three dimension we would divide by the volume of the cell, hence the name, finite volume method.</p>
+</div>
+<p>For the advection component of the flux we will use a linear interpolation (see <a class="reference internal" href="#label-interpolation-aside"><em>Aside: Linear interpolation between cell centre and face values</em></a>) to determine the contribution at the cell faces, and for the diffusion component with will use a simple cell average,</p>
 <div class="math">
 \[\mathcal{F}_{j+\frac{1}{2}} = a_{j+\frac{1}{2}}\left( \frac{h_{j+1}}{2h_{+}} w_j + \frac{h_j}{2h_{+}} w_{j+1} \right) - d_{j+\frac{1}{2}} \frac{w_{j+1}-w_j}{h_{+}}\]</div>
 <div class="math">
@@ -72,9 +229,13 @@
 <p class="caption">Finite volume cells with important distances and positions labelled.</p>
 </div>
 <p>Substituting the definition of the fluxes into the above equation yields,</p>
-<div class="math">
-\[w_j^{\prime} = \frac{w_{j-1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) + \frac{w_j}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} -         \frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{w_{j+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)\]</div>
+<div class="math" id="equation-eq1">
+<span class="eqno">(1)</span>\[w_j^{\prime} = \frac{w_{j-1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}})}{h_{-}}\right) + \frac{w_j}{h_j}\left( \frac{a(x_{j-\frac{1}{2}})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}})h_{j+1}}{2h_{+}} -         \frac{d(x_{j-\frac{1}{2}})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}})}{h_{+}}  \right) + \frac{w_{j+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}})}{h_{+}} \right)\]</div>
 <p>This equation is the <em>semi-discrete</em> form because the equation has not been discretised in time.</p>
+<p>For convenience we will simply write the r.h.s. of <a href="#equation-eq1">(1)</a> as,</p>
+<div class="math">
+\[w_j^{\prime} = F(w)\]</div>
+<p>where it is understood that <span class="math">\(w = (w_{j-1}, w_j, w_{j+1})\)</span> stands for the discretisation stencil.</p>
 <div class="section" id="adaptive-upwinding-exponential-fitting">
 <h2>Adaptive upwinding &amp; exponential fitting<a class="headerlink" href="#adaptive-upwinding-exponential-fitting" title="Permalink to this headline">¶</a></h2>
 <p>Hundsdorfer (on pg. 266) notes that a adaptive upwinding scheme can be introduced by altering the diffusion coefficient,</p>
@@ -101,14 +262,17 @@
 <p>In the discussion so far we have been ignoring one important deal: at what <em>time</em> is the r.h.s of the discretised equation evaluated?</p>
 <p>Moreover, if we choose the r.h.s to be evaluated at the <em>present</em> time step, <span class="math">\(t_n\)</span> this is known as an <em>explicit</em> method,</p>
 <div class="math">
-\[w_j^{\prime} = \frac{w_{j-1}^{n}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}},t_n) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}}, t_n)}{h_{-}}\right) + \frac{w_j^n}{h_j}\left( \frac{a(x_{j-\frac{1}{2}},t_n)h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}},t_n)h_{j+1}}{2h_{+}} -  \frac{d(x_{j-\frac{1}{2}},t_n)}{h_{-}} - \frac{d(x_{j+\frac{1}{2}},t_n)}{h_{+}}  \right) + \frac{w_{j+1}^{n+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}},t_n)h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}},t_n)}{h_{+}} \right)\]</div>
+\[w_j^{\prime} = F(w^n)\]</div>
 <p>Explicit methods are very simple. Starting with initial conditions at time <span class="math">\(t_n\)</span>, the above equation can be rearranged to find the solution variable <span class="math">\(w_j^{n+1}\)</span> at the future time step, <span class="math">\(t_{n+1}\)</span>.</p>
 <p>However the downside of using explicit methods is that they are often numerically unstable unless the time step is exceptionally (sometime unrealistically) small.</p>
 <p>Fortunately there is an second alternative, we can choice to write the r.h.s of the equation at the <em>future</em> time step, <span class="math">\(t_{n+1}\)</span>, this is known as an <em>implicit</em> method,</p>
 <div class="math">
-\[w_j^{\prime} = \frac{w_{j-1}^{n+1}}{h_j} \left( \frac{a(x_{j-\frac{1}{2}},t_{n+1}) h_j}{2h_{-}} + \frac{d(x_{j-\frac{1}{2}}, t_{n+1})}{h_{-}}\right) + \frac{w_j^{n+1}}{h_j}\left( \frac{a(x_{j-\frac{1}{2}},t_{n+1})h_{j-1}}{2h_{-}} - \frac{a(x_{j+\frac{1}{2}},t_{n+1})h_{j+1}}{2h_{+}} -    \frac{d(x_{j-\frac{1}{2}},t_{n+1})}{h_{-}} - \frac{d(x_{j+\frac{1}{2}},t_{n+1})}{h_{+}}  \right) + \frac{w_{j+1}^{n+1}}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}},t_{n+1})h_j}{2h_{+}} + \frac{d(x_{j+\frac{1}{2}},t_{n+1})}{h_{+}} \right)\]</div>
+\[w_j^{\prime} = F(w^{n+1})\]</div>
 <p>Explicit methods are significantly more numerically robust, however they pose a problem, how does one write the equations because the solution variable at the future time step <span class="math">\(w^{n+1}\)</span> is unknown? The answer is that at each time step we must solve a linear system of equation to find <span class="math">\(w^{n+1}\)</span>.</p>
-<p>Moreover, we have discretised a continuous PDE into <span class="math">\(J\)</span> equations and <span class="math">\(J\)</span> unknowns (the solution variables), therefore it is possible to solve this set of equations to find the unknown <span class="math">\(w^{n+1}\)</span> terms. If the equations are linear, that is to say that they can be written in matrix form <em>and</em> the variables of the coefficients do not depend on the future state of the system, then this amounts to solving a linear system of the form <span class="math">\(A\cdot x = d\)</span>. However, if the equations are nonlinear or the coefficients depend on the future state of the system this approach cannot be used, and the solution variable <span class="math">\(w^{n+1}\)</span> can only be found by an iterative procedure for example Newton-Raphson method.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For the <strong>linear</strong> advection-diffusion-reaction equation implicit methods are simply to implement even though the computation cost is increases. One must simply write the equation in the linear form <span class="math">\(A\cdot x = d\)</span> and solve for <span class="math">\(x\)</span> which is the solution variable at the future time step. However if the equations are non-linear then implicit methods pose problem because the equation <strong>cannot</strong> be written in linear form. In these situations are there are a number of techniques that are used but they all most use a iterative procedure, such as a Newton-Raphson method, to solve the equations.</p>
+</div>
 <p>The following section assumes that the equation is linear.</p>
 </div>
 <div class="section" id="the-method">
@@ -135,8 +299,8 @@ r_c &amp; = \frac{1}{h_j} \left( \frac{-a(x_{j+\frac{1}{2}})h_j}{2h_{+}} + \frac
 \[\begin{split}\frac{w^{n+1} - w^{n}}{\tau} &amp; =  \theta F(w^{n+1}) + (1-\theta)F(w^{n})\end{split}\]</div>
 <p>where,</p>
 <div class="math">
-\[\begin{split}F(w^{n+1}) = M^{n+1} w^{n+1} + \theta s^{n+1} \\
-F(w^{n}) = M^{n}w^{n} + (1-\theta) s^{n}\end{split}\]</div>
+\[\begin{split}F(w^{n+1}) = M^{n+1} w^{n+1} + s^{n+1} \\
+F(w^{n}) = M^{n}w^{n} + s^{n}\end{split}\]</div>
 <p>with the coefficient matrix,</p>
 <div class="math">
 \[\begin{split}M =
@@ -151,17 +315,24 @@ r_a &amp; r_b    &amp; r_c    &amp;       &amp;     \\
 \end{align}\end{split}\]</div>
 <p>The <span class="math">\(r\)</span>-terms have be previously defined as the coefficients that result from the discretisation method. Note that the subscripts for the <span class="math">\(r\)</span>-terms have been dropped to simplify the notation, but they are functions of space. For example, terms in the first row should be calculated with <span class="math">\(j=1\)</span>, in the second with <span class="math">\(j=2\)</span> etc.</p>
 </div>
-<div class="section" id="time-stepping">
-<h2>Time-stepping<a class="headerlink" href="#time-stepping" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="time-stepping-the-linear-advection-diffusion-reaction-equation">
+<h2>Time-stepping the linear advection-diffusion-reaction equation<a class="headerlink" href="#time-stepping-the-linear-advection-diffusion-reaction-equation" title="Permalink to this headline">¶</a></h2>
 <p>Provided the equation is linear, meaning that the coefficients, nor the reaction term depend on the solution variable a time-stepping approach can be used to solve the equation. We will rearrange the last equation into the form of a linear system <span class="math">\(A\cdot x = d\)</span>. Firstly lets move all terms involving future time points the l.h.s,</p>
 <div class="math">
 \[w^{n+1} - \theta \tau F(w^{n+1}) = w^{n} + (1-\theta) F(w^{n+1})\]</div>
 <p>Replacing the <span class="math">\(F\)</span> terms with the full matrix expressions and factoring yields,</p>
 <div class="math">
 \[\underbrace{(I - \theta\tau M^{n+1})}_{A}\underbrace{w^{n+1}}_{x} = \underbrace{(I + (1-\theta)\tau M^{n})w^{n}}_{d}\]</div>
-<p>Time-stepping involves solving this equation iteratively. First the initial conditions <span class="math">\(w^0\)</span> is used to calculate the solution variable at the next point in time <span class="math">\(w^1\)</span>, then values of the solution variable are updated such that <span class="math">\(w^1\)</span> is used to calculate <span class="math">\(w^2\)</span>, and so on and so forth.</p>
+<p>Time-stepping involves solving this equation iteratively. First the initial conditions <span class="math">\(w^0\)</span> is used to calculate the solution variable at the next point in time <span class="math">\(w^1\)</span>, then values of the solution variable are updated such that <span class="math">\(w^1\)</span> is used to calculate <span class="math">\(w^2\)</span>, and so on and so forth. This procedure is shown in the Figure below,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/time_stepping_linear_advection_diffusion.png"><img alt="Time stepping the linear advection-diffusion equation." src="_images/time_stepping_linear_advection_diffusion.png" style="width: 600.0px; height: 450.0px;" /></a>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Parameters used for this simulation. <span class="math">\(a=1\)</span>, <span class="math">\(d=1\times 10^{-3}\)</span>, <span class="math">\(h=5 \times 10^{-3}\)</span>, <span class="math">\(\tau=5 \times 10^{-4}\)</span> with exponentially fitted discretisation. The initial and boundary conditions where, <span class="math">\(u(x,t_{0}) =sin(\pi x)^{100}\)</span> with <span class="math">\(u(x_1)=1\)</span> and <span class="math">\(u_x(x_J)=0\)</span>. The equation was time stepped for 400 iterations, the plots so the solution at times <span class="math">\(t=0,0.05,0.1,0.15,0.2\)</span>.</p>
+</div>
 <div class="section" id="aside-linear-interpolation-between-cell-centre-and-face-values">
-<h3>Aside <span class="math">\(-\)</span> Linear interpolation between cell centre and face values<a class="headerlink" href="#aside-linear-interpolation-between-cell-centre-and-face-values" title="Permalink to this headline">¶</a></h3>
+<span id="label-interpolation-aside"></span><h3>Aside: Linear interpolation between cell centre and face values<a class="headerlink" href="#aside-linear-interpolation-between-cell-centre-and-face-values" title="Permalink to this headline">¶</a></h3>
 <p>In general, linear interpolation between two points <span class="math">\((x_0, x_1)\)</span> can be used to find the value of a function at <span class="math">\(f(x)\)</span>,</p>
 <div class="math">
 \[f(x) = \frac{x - x_1}{x_0 - x_1}f(x_0) + \frac{x - x_0}{x_1 - x_0}f(x_1)\]</div>
@@ -191,72 +362,40 @@ r_a &amp; r_b    &amp; r_c    &amp;       &amp;     \\
 </div>
 
 
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">The advection-diffusion-reaction equation</a><ul>
-<li><a class="reference internal" href="#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
-<li><a class="reference internal" href="#explicit-and-implicit-forms">Explicit and implicit forms</a></li>
-<li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
-<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
-<li><a class="reference internal" href="#time-stepping">Time-stepping</a><ul>
-<li><a class="reference internal" href="#aside-linear-interpolation-between-cell-centre-and-face-values">Aside <span class="math">\(-\)</span> Linear interpolation between cell centre and face values</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+        
+        
+      </div><!-- /row -->
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="finite_volume_method.html"
-                        title="previous chapter">Introduction to the Finite Volume Method (FVM)</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="advection_diffusion_boundary_conditions.html"
-                        title="next chapter">Boundary conditions for the advection-diffusion-reaction equation</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/advection_diffusion.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
+      <!-- row -->
+      <div class="row-fluid">
+<div class="related navbar ">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="advection_diffusion_boundary_conditions.html" title="Boundary conditions for the advection-diffusion-reaction equation" >next</a></li>
+        <li><a href="overview.html" title="Overview" >previous</a></li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a></li> 
+      
+    </ul>
+  </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer>
+          &copy; Copyright 2013, Daniel J Farrell.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      </footer>
+      <!-- /footer -->
+
     </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="advection_diffusion_boundary_conditions.html" title="Boundary conditions for the advection-diffusion-reaction equation"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="finite_volume_method.html" title="Introduction to the Finite Volume Method (FVM)"
-             >previous</a> |</li>
-        <li><a href="index.html">FVM Docs 0.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2013, Daniel J Farrell.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
-    </div>
+    <!-- /container -->
+
   </body>
 </html>

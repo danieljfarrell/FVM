@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    
+    <title>Overview &mdash; FVM Docs 0.1 documentation</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+<!--[if IE 7]>
+<link rel="stylesheet" href="_static/css/font-awesome-ie7.min.css">
+<![endif]-->
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+}
+</style>
+<link rel="stylesheet" href="_static/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap-responsive.min.css" type="text/css" />
+    
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    '',
+            VERSION:     '0.1',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+<script type="text/javascript" src="_static/js/jquery.min.js"></script>
+<script type="text/javascript" src="_static/underscore.js"></script>
+<script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="_static/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('.show-sidebar').click(function(e) {
+       e.preventDefault();
+       if ($(".show-sidebar").html() == "Open Table Of Contents") {
+          $('.for-mobile').removeClass('hidden-phone');
+          $(".show-sidebar").html("Close Table Of Contents");
+       } else {
+          $(".show-sidebar").html("Open Table Of Contents");
+       }
+    });
+  });
+</script>
+    <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="next" title="The advection-diffusion-reaction equation" href="advection_diffusion.html" />
+    <link rel="prev" title="Notes on implementing the finite-volume method for physical simulations" href="index.html" /> 
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top ">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="index.html">FVM Docs 0.1 documentation</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              
+                <li>
+                <a href="genindex.html" title="General Index" accesskey="I">index</a>
+                </li>
+                <li>
+                <a href="advection_diffusion.html" title="The advection-diffusion-reaction equation" accesskey="N">next</a>
+                </li>
+                <li>
+                <a href="index.html" title="Notes on implementing the finite-volume method for physical simulations" accesskey="P">previous</a>
+                </li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- container -->
+    <div class="container-fluid">
+
+
+      
+      <div class="row-fluid hidden-desktop hidden-tablet">
+      
+<div class="span3 ">
+  <a class="visible-phone btn btn-small show-sidebar" data-toggle="collapse" data-target=".for-mobile">Open Table Of Contents</a>
+  <div class="for-mobile sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Overview</a><ul>
+<li><a class="reference internal" href="#finite-volumes-vs-finite-differences">Finite volumes vs. finite differences</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Notes on implementing the finite-volume method for physical simulations</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="advection_diffusion.html"
+                        title="next chapter">The advection-diffusion-reaction equation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/overview.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div>
+      </div>
+      
+
+      <!-- row -->
+      <div class="row-fluid">
+         
+<div class="span3 visible-desktop visible-tablet">
+  <div class=" sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Overview</a><ul>
+<li><a class="reference internal" href="#finite-volumes-vs-finite-differences">Finite volumes vs. finite differences</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Notes on implementing the finite-volume method for physical simulations</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="advection_diffusion.html"
+                        title="next chapter">The advection-diffusion-reaction equation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/overview.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="span9">
+          <div class="document">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
+  <div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p>These are notes that I am making while learning the finite-volume method (FVM). The methods discussed are based on the the book by W. Hundsdorfer and J. G. Verwer, Numerical solutions of time-dependent advection-diffusion reaction equations.</p>
+<p>See the the accompanying project on Github for implementation of the solvers in Python branch, <a class="reference external" href="http://danieljfarrell.github.come/FVM/">http://danieljfarrell.github.come/FVM/</a>.</p>
+<div class="section" id="finite-volumes-vs-finite-differences">
+<h2>Finite volumes vs. finite differences<a class="headerlink" href="#finite-volumes-vs-finite-differences" title="Permalink to this headline">¶</a></h2>
+<p>When first starting to solve (partial) differential equation problems a student will first encounter the finite difference method (FDM). The FDM relies on approximating the a differential operator as a series of distinct points,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/grid_FDM.png"><img alt="Finite difference grid" src="_images/grid_FDM.png" style="width: 392.0px; height: 130.0px;" /></a>
+</div>
+<p>In contrast, the FVM uses a fundamental unit of averages over small spatial elements, or cells,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/cells_FVM.png"><img alt="Finite volume grid." src="_images/cells_FVM.png" style="width: 405.0px; height: 174.0px;" /></a>
+</div>
+<p>Although this distinction may seem trivial at first or even over complicated it is a particularly power technique when applied to conservation equations because the conservative properties of the governing equation are maintained even at the discretised level without introducing any approximations. This property is achieved by symbolic integrating the equations over a finite volume, then using solve the problem in terms of the integrated variables.</p>
+<p>This sounds much more complicated that it is, let&#8217;s look at an example.</p>
+</div>
+</div>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+      </div><!-- /row -->
+
+      <!-- row -->
+      <div class="row-fluid">
+<div class="related navbar ">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="advection_diffusion.html" title="The advection-diffusion-reaction equation" >next</a></li>
+        <li><a href="index.html" title="Notes on implementing the finite-volume method for physical simulations" >previous</a></li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a></li> 
+      
+    </ul>
+  </div>
+</div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer>
+          &copy; Copyright 2013, Daniel J Farrell.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      </footer>
+      <!-- /footer -->
+
+    </div>
+    <!-- /container -->
+
+  </body>
+</html>

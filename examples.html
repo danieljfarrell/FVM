@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    
+    <title>Example calculations &mdash; FVM Docs 0.1 documentation</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+<!--[if IE 7]>
+<link rel="stylesheet" href="_static/css/font-awesome-ie7.min.css">
+<![endif]-->
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+}
+</style>
+<link rel="stylesheet" href="_static/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap-responsive.min.css" type="text/css" />
+    
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    '',
+            VERSION:     '0.1',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+<script type="text/javascript" src="_static/js/jquery.min.js"></script>
+<script type="text/javascript" src="_static/underscore.js"></script>
+<script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="_static/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('.show-sidebar').click(function(e) {
+       e.preventDefault();
+       if ($(".show-sidebar").html() == "Open Table Of Contents") {
+          $('.for-mobile').removeClass('hidden-phone');
+          $(".show-sidebar").html("Close Table Of Contents");
+       } else {
+          $(".show-sidebar").html("Open Table Of Contents");
+       }
+    });
+  });
+</script>
+    <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Solving the advection-diffusion-reaction equation in Python" href="implementation_advection_diffusion.html" /> 
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top ">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="index.html">FVM Docs 0.1 documentation</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              
+                <li>
+                <a href="genindex.html" title="General Index" accesskey="I">index</a>
+                </li>
+                <li>
+                <a href="implementation_advection_diffusion.html" title="Solving the advection-diffusion-reaction equation in Python" accesskey="P">previous</a>
+                </li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- container -->
+    <div class="container-fluid">
+
+
+      
+      <div class="row-fluid hidden-desktop hidden-tablet">
+      
+<div class="span3 ">
+  <a class="visible-phone btn btn-small show-sidebar" data-toggle="collapse" data-target=".for-mobile">Open Table Of Contents</a>
+  <div class="for-mobile sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Example calculations</a><ul>
+<li><a class="reference internal" href="#uniform-grid">Uniform grid</a></li>
+<li><a class="reference internal" href="#random-grid">Random grid</a></li>
+<li><a class="reference internal" href="#nonuniform-grid">Nonuniform grid</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="implementation_advection_diffusion.html"
+                        title="previous chapter">Solving the advection-diffusion-reaction equation in Python</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/examples.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div>
+      </div>
+      
+
+      <!-- row -->
+      <div class="row-fluid">
+         
+<div class="span3 visible-desktop visible-tablet">
+  <div class=" sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Example calculations</a><ul>
+<li><a class="reference internal" href="#uniform-grid">Uniform grid</a></li>
+<li><a class="reference internal" href="#random-grid">Random grid</a></li>
+<li><a class="reference internal" href="#nonuniform-grid">Nonuniform grid</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="implementation_advection_diffusion.html"
+                        title="previous chapter">Solving the advection-diffusion-reaction equation in Python</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/examples.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="span9">
+          <div class="document">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
+  <div class="section" id="example-calculations">
+<h1>Example calculations<a class="headerlink" href="#example-calculations" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For all simulations <span class="math">\(a=1\)</span>, <span class="math">\(d=0.001\)</span> on a domain where <span class="math">\(0\leq x \leq 1\)</span>, with mesh spacing <span class="math">\(h=0.02\)</span> and time step <span class="math">\(\tau=0.01\)</span>. The equations are solver with the boundary conditions <span class="math">\(u(0,t)=1\)</span> and <span class="math">\(u(1,t)=0\)</span> and initial conditions <span class="math">\(u(x,0)=sin(\pi x)^{100}\)</span>. With these boundary conditions a boundary layer will form near <span class="math">\(x=1\)</span>.</p>
+</div>
+<div class="section" id="uniform-grid">
+<h2>Uniform grid<a class="headerlink" href="#uniform-grid" title="Permalink to this headline">¶</a></h2>
+<p>First we test the finite-volume method using a standard uniform grid. Note that the Peclet number for the above parameters is <span class="math">\(\mu=20\)</span> so the central discretisation scheme is not stable as illustrated by the oscillations in the solution. The upwind scheme does not have a stability criteria related to the Peclet number so the solutions for the <em>upwind</em> case are smooth. Finally, the <em>exponentially fitted</em> scheme has automatically weighted in favour of the upwind discretisation, the value of <span class="math">\(\kappa\approx 0.9\)</span>.</p>
+<div style="margin-top:10px;">
+      <iframe src="http://player.vimeo.com/video/69527955" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+</div></div>
+<div class="section" id="random-grid">
+<h2>Random grid<a class="headerlink" href="#random-grid" title="Permalink to this headline">¶</a></h2>
+<p>Although a random grid is of no practical use it is a good test of the code because bugs are more likely to show up when symmetry has been reduced. I the follow simulations <span class="math">\(\text{min}(\kappa)\)</span> =0.004 and <span class="math">\(\text{max}(\kappa)\)</span> =0.98 so the discretisation scheme is abruptly changing from cell to cell.</p>
+<div style="margin-top:10px;">
+      <iframe src="http://player.vimeo.com/video/69528243" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+</div></div>
+<div class="section" id="nonuniform-grid">
+<h2>Nonuniform grid<a class="headerlink" href="#nonuniform-grid" title="Permalink to this headline">¶</a></h2>
+<p>Nonuniform grids can be used to reduce to <em>improve</em> the solution as shown here. The following simulation contains the same number of cells as the previous simulations however the cell centres are clustered towards the right hand boundary. The increased density of cells allow the boundary layer to be resolved. The transient solution computed from the <em>central</em> scheme is still significantly affected by the high Peclet number but it is interesting to observe that the steady-state solution of all three methods are very similar. Furthermore, <span class="math">\(\kappa\approx0.01-0.1\)</span> in the region of the boundary layer which implies the local value of Peclet number as been reduced enough so allow the exponentially fitted scheme to weight in favour of the higher accuracy central discretisation.</p>
+<div style="margin-top:10px;">
+      <iframe src="http://player.vimeo.com/video/69528242" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+</div></div>
+</div>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+      </div><!-- /row -->
+
+      <!-- row -->
+      <div class="row-fluid">
+<div class="related navbar ">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="implementation_advection_diffusion.html" title="Solving the advection-diffusion-reaction equation in Python" >previous</a></li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a></li> 
+      
+    </ul>
+  </div>
+</div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer>
+          &copy; Copyright 2013, Daniel J Farrell.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      </footer>
+      <!-- /footer -->
+
+    </div>
+    <!-- /container -->
+
+  </body>
+</html>

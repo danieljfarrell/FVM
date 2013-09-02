@@ -60,6 +60,7 @@
   });
 </script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="next" title="Example calculations" href="examples.html" />
     <link rel="prev" title="The Poisson equation" href="poisson.html" /> 
   </head>
   <body>
@@ -77,6 +78,9 @@
               
                 <li>
                 <a href="genindex.html" title="General Index" accesskey="I">index</a>
+                </li>
+                <li>
+                <a href="examples.html" title="Example calculations" accesskey="N">next</a>
                 </li>
                 <li>
                 <a href="poisson.html" title="The Poisson equation" accesskey="P">previous</a>
@@ -106,7 +110,6 @@
 <li><a class="reference internal" href="#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-model-class">The <tt class="code docutils literal"><span class="pre">Model</span></tt> class</a></li>
-<li><a class="reference internal" href="#examples">Examples</a></li>
 </ul>
 </li>
 </ul>
@@ -114,6 +117,9 @@
   <h4>Previous topic</h4>
   <p class="topless"><a href="poisson.html"
                         title="previous chapter">The Poisson equation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="examples.html"
+                        title="next chapter">Example calculations</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/implementation_advection_diffusion.txt"
@@ -150,7 +156,6 @@
 <li><a class="reference internal" href="#the-mesh-class">The <tt class="code docutils literal"><span class="pre">Mesh</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-cellvariable-class">The <tt class="code docutils literal"><span class="pre">CellVariable</span></tt> class</a></li>
 <li><a class="reference internal" href="#the-model-class">The <tt class="code docutils literal"><span class="pre">Model</span></tt> class</a></li>
-<li><a class="reference internal" href="#examples">Examples</a></li>
 </ul>
 </li>
 </ul>
@@ -158,6 +163,9 @@
   <h4>Previous topic</h4>
   <p class="topless"><a href="poisson.html"
                         title="previous chapter">The Poisson equation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="examples.html"
+                        title="next chapter">Example calculations</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/implementation_advection_diffusion.txt"
@@ -342,33 +350,6 @@ index = ...
 </div>
 <p>Finally, when initialising a <tt class="code docutils literal"><span class="pre">Model</span></tt> object the keyword argument <tt class="code docutils literal"><span class="pre">,</span> <span class="pre">discretisation</span></tt> is important. Is can be set to one of the following <tt class="code docutils literal"><span class="pre">'upwind',</span> <span class="pre">'central',</span> <span class="pre">'exponential'</span></tt>. The <tt class="code docutils literal"><span class="pre">upwind</span></tt> option uses the classic <em>first order upwind</em> discretisation, <tt class="code docutils literal"><span class="pre">central</span></tt> uses <em>second-order central</em> and setting to <tt class="code docutils literal"><span class="pre">exponential</span></tt> uses an adaptive scheme which will use weight between the central and upwind scheme depending on the local value of the Peclet number. This is the classic &#8216;exponential fitting&#8217; or &#8216;Scharfetter-Gummel&#8217; discretisation. <strong>N.B.</strong> Scharfetter-Gummel also refers to a method of solving the advection-diffusion equation is a non-coupled manner, this is not the case here where it only refers to the the discretisation method.</p>
 </div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt>For the following example the analytical solution is plotted as the thin black line and the parameters are,</dt>
-<dd><ul class="first last simple">
-<li>a = 1</li>
-<li>d = 0.001</li>
-<li>The domain is between (0,1)</li>
-<li>k = 0.01 (time step)</li>
-<li>N = 50 (number of cells)</li>
-</ul>
-</dd>
-</dl>
-<p>Dirichlet boundary conditions, <span class="math">\(u(0,t)=1\)</span> and <span class="math">\(u(1,t)=0\)</span> and enforced as such should expect a boundary layer to form near <span class="math">\(x=1\)</span>.</p>
-<p><strong>Uniform grid</strong></p>
-<p>First we test the finite-volume method using a standard uniform grid. Note that the Peclet number for the above parameters is <span class="math">\(\mu=20\)</span> so the central discretisation scheme is not stable as illustrated by the oscillations in the solution. The upwind scheme does not have a stability criteria related to the Peclet number so the solutions for the <em>upwind</em> case are smooth. Finally, the <em>exponentially fitted</em> scheme has automatically weighted in favour of the upwind discretisation, the value of <span class="math">\(\kappa\approx\)</span> 0.9.</p>
-<div style="margin-top:10px;">
-      <iframe src="http://player.vimeo.com/video/69527955" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-</div><p><strong>Random grid</strong></p>
-<p>Although a random grid is of no practical use it is a good test of the code because bugs are more likely to show up when symmetry has been reduced. I the follow simulations <span class="math">\(\text{min}(\kappa)\)</span> =0.004 and <span class="math">\(\text{max}(\kappa)\)</span> =0.98 so the discretisation scheme is abruptly changing from cell to cell.</p>
-<div style="margin-top:10px;">
-      <iframe src="http://player.vimeo.com/video/69528243" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-</div><p><strong>Nonuniform grid</strong></p>
-<p>Nonuniform grids can be used to reduce to <em>improve</em> the solution as shown here. The following simulation contains the same number of cells as the previous simulations however the cell centres are clustered towards the right hand boundary. The increased density of cells allow the boundary layer to be resolved. The transient solution computed from the <em>central</em> scheme is still significantly affected by the high Peclet number but it is interesting to observe that the steady-state solution of all three methods are very similar. Furthermore, <span class="math">\(\kappa\approx0.01-0.1\)</span> in the region of the boundary layer which implies the local value of Peclet number as been reduced enough so allow the exponentially fitted scheme to weight in favour of the higher accuracy central discretisation.</p>
-<div style="margin-top:10px;">
-      <iframe src="http://player.vimeo.com/video/69528242" width="480" height="460" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-</div></div>
 </div>
 
 
@@ -388,6 +369,7 @@ index = ...
     <ul class="nav pull-right">
       
         <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="examples.html" title="Example calculations" >next</a></li>
         <li><a href="poisson.html" title="The Poisson equation" >previous</a></li>
         <li><a href="index.html">FVM Docs 0.1 documentation</a></li> 
       

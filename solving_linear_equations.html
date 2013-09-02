@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    
+    <title>Solving linear equations &mdash; FVM Docs 0.1 documentation</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+<!--[if IE 7]>
+<link rel="stylesheet" href="_static/css/font-awesome-ie7.min.css">
+<![endif]-->
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+}
+</style>
+<link rel="stylesheet" href="_static/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/bootstrap-responsive.min.css" type="text/css" />
+    
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    '',
+            VERSION:     '0.1',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+<script type="text/javascript" src="_static/js/jquery.min.js"></script>
+<script type="text/javascript" src="_static/underscore.js"></script>
+<script type="text/javascript" src="_static/doctools.js"></script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/javascript" src="_static/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('.show-sidebar').click(function(e) {
+       e.preventDefault();
+       if ($(".show-sidebar").html() == "Open Table Of Contents") {
+          $('.for-mobile').removeClass('hidden-phone');
+          $(".show-sidebar").html("Close Table Of Contents");
+       } else {
+          $(".show-sidebar").html("Open Table Of Contents");
+       }
+    });
+  });
+</script>
+    <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
+    <link rel="next" title="Solving nonlinear equations" href="solving_nonlinear_equations.html" />
+    <link rel="prev" title="Boundary conditions for the advection-diffusion-reaction equation" href="advection_diffusion_boundary_conditions.html" /> 
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top ">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="index.html">FVM Docs 0.1 documentation</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+              
+                <li>
+                <a href="genindex.html" title="General Index" accesskey="I">index</a>
+                </li>
+                <li>
+                <a href="solving_nonlinear_equations.html" title="Solving nonlinear equations" accesskey="N">next</a>
+                </li>
+                <li>
+                <a href="advection_diffusion_boundary_conditions.html" title="Boundary conditions for the advection-diffusion-reaction equation" accesskey="P">previous</a>
+                </li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- container -->
+    <div class="container-fluid">
+
+
+      
+      <div class="row-fluid hidden-desktop hidden-tablet">
+      
+<div class="span3 ">
+  <a class="visible-phone btn btn-small show-sidebar" data-toggle="collapse" data-target=".for-mobile">Open Table Of Contents</a>
+  <div class="for-mobile sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Solving linear equations</a><ul>
+<li><a class="reference internal" href="#time-stepping-the-advection-diffusion-equation">Time stepping the advection-diffusion equation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="advection_diffusion_boundary_conditions.html"
+                        title="previous chapter">Boundary conditions for the advection-diffusion-reaction equation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="solving_nonlinear_equations.html"
+                        title="next chapter">Solving nonlinear equations</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/solving_linear_equations.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div>
+      </div>
+      
+
+      <!-- row -->
+      <div class="row-fluid">
+         
+<div class="span3 visible-desktop visible-tablet">
+  <div class=" sidebar hidden-phone">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Solving linear equations</a><ul>
+<li><a class="reference internal" href="#time-stepping-the-advection-diffusion-equation">Time stepping the advection-diffusion equation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="advection_diffusion_boundary_conditions.html"
+                        title="previous chapter">Boundary conditions for the advection-diffusion-reaction equation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="solving_nonlinear_equations.html"
+                        title="next chapter">Solving nonlinear equations</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/solving_linear_equations.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox">
+  <h3>Quick search</h3>
+  <form class="search form-search" action="search.html" method="get">
+      <div class="input-append">
+        <input type="text" class="search-query" name="q">
+        <input type="submit" class="btn" value="Go" />
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="span9">
+          <div class="document">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
+  <div class="section" id="solving-linear-equations">
+<h1>Solving linear equations<a class="headerlink" href="#solving-linear-equations" title="Permalink to this headline">¶</a></h1>
+<p>Provided the equation is linear, meaning that the coefficients, nor the reaction term depend on the solution variable a time-stepping approach can be used to solve the equation.</p>
+<div class="section" id="time-stepping-the-advection-diffusion-equation">
+<h2>Time stepping the advection-diffusion equation<a class="headerlink" href="#time-stepping-the-advection-diffusion-equation" title="Permalink to this headline">¶</a></h2>
+<p>Here we will rearrange the <span class="math">\(\theta\)</span>-method form of the advection-diffusion equation,</p>
+<div class="math">
+\[\begin{split}\frac{w^{n+1} - w^{n}}{\tau} &amp; =  \theta F(w^{n+1}) + (1-\theta)F(w^{n})\end{split}\]</div>
+<p>into the form of a linear system <span class="math">\(A\cdot x = d\)</span>. Firstly lets move all terms involving future time points the l.h.s,</p>
+<div class="math">
+\[w^{n+1} - \theta \tau F(w^{n+1}) = w^{n} + (1-\theta) F(w^{n+1})\]</div>
+<p>Replacing the <span class="math">\(F\)</span> terms with the full matrix expressions and factoring yields,</p>
+<div class="math">
+\[\underbrace{(I - \theta\tau M^{n+1})}_{A}\underbrace{w^{n+1}}_{x} = \underbrace{(I + (1-\theta)\tau M^{n})w^{n}}_{d}\]</div>
+<p>Time-stepping involves solving this equation iteratively. First the initial conditions <span class="math">\(w^0\)</span> is used to calculate the solution variable at the next point in time <span class="math">\(w^1\)</span>, then values of the solution variable are updated such that <span class="math">\(w^1\)</span> is used to calculate <span class="math">\(w^2\)</span>, and so on and so forth. This procedure is shown in the Figure below,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/time_stepping_linear_advection_diffusion.png"><img alt="Time stepping the linear advection-diffusion equation." src="_images/time_stepping_linear_advection_diffusion.png" style="width: 600.0px; height: 450.0px;" /></a>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Parameters used for this simulation. <span class="math">\(a=1\)</span>, <span class="math">\(d=1\times 10^{-3}\)</span>, <span class="math">\(h=5 \times 10^{-3}\)</span>, <span class="math">\(\tau=5 \times 10^{-4}\)</span> with exponentially fitted discretisation. The initial and boundary conditions where, <span class="math">\(u(x,t_{0}) =sin(\pi x)^{100}\)</span> with <span class="math">\(u(x_1)=1\)</span> and <span class="math">\(u_x(x_J)=0\)</span>. The equation was time stepped for 400 iterations, the plots so the solution at times <span class="math">\(t=0,0.05,0.1,0.15,0.2\)</span>.</p>
+</div>
+</div>
+</div>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+      </div><!-- /row -->
+
+      <!-- row -->
+      <div class="row-fluid">
+<div class="related navbar ">
+  <div class="navbar-inner">
+    <ul class="nav pull-right">
+      
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="solving_nonlinear_equations.html" title="Solving nonlinear equations" >next</a></li>
+        <li><a href="advection_diffusion_boundary_conditions.html" title="Boundary conditions for the advection-diffusion-reaction equation" >previous</a></li>
+        <li><a href="index.html">FVM Docs 0.1 documentation</a></li> 
+      
+    </ul>
+  </div>
+</div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer>
+          &copy; Copyright 2013, Daniel J Farrell.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      </footer>
+      <!-- /footer -->
+
+    </div>
+    <!-- /container -->
+
+  </body>
+</html>

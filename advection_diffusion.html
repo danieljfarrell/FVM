@@ -109,8 +109,7 @@
 <li><a class="reference internal" href="#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
 <li><a class="reference internal" href="#explicit-and-implicit-forms">Explicit and implicit forms</a></li>
 <li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
-<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
-<li><a class="reference internal" href="#time-stepping-the-linear-advection-diffusion-reaction-equation">Time-stepping the linear advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a><ul>
 <li><a class="reference internal" href="#aside-linear-interpolation-between-cell-centre-and-face-values">Aside: Linear interpolation between cell centre and face values</a></li>
 </ul>
 </li>
@@ -159,8 +158,7 @@
 <li><a class="reference internal" href="#adaptive-upwinding-exponential-fitting">Adaptive upwinding &amp; exponential fitting</a></li>
 <li><a class="reference internal" href="#explicit-and-implicit-forms">Explicit and implicit forms</a></li>
 <li><a class="reference internal" href="#the-method">The <span class="math">\(\theta\)</span>-method</a></li>
-<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a></li>
-<li><a class="reference internal" href="#time-stepping-the-linear-advection-diffusion-reaction-equation">Time-stepping the linear advection-diffusion-reaction equation</a><ul>
+<li><a class="reference internal" href="#discretised-equation-in-matrix-form">Discretised equation in matrix form</a><ul>
 <li><a class="reference internal" href="#aside-linear-interpolation-between-cell-centre-and-face-values">Aside: Linear interpolation between cell centre and face values</a></li>
 </ul>
 </li>
@@ -313,24 +311,7 @@ r_a &amp; r_b    &amp; r_c    &amp;       &amp;     \\
  0  &amp;        &amp;        &amp; r_a   &amp; r_b
 \end{pmatrix}
 \end{align}\end{split}\]</div>
-<p>The <span class="math">\(r\)</span>-terms have be previously defined as the coefficients that result from the discretisation method. Note that the subscripts for the <span class="math">\(r\)</span>-terms have been dropped to simplify the notation, but they are functions of space. For example, terms in the first row should be calculated with <span class="math">\(j=1\)</span>, in the second with <span class="math">\(j=2\)</span> etc.</p>
-</div>
-<div class="section" id="time-stepping-the-linear-advection-diffusion-reaction-equation">
-<h2>Time-stepping the linear advection-diffusion-reaction equation<a class="headerlink" href="#time-stepping-the-linear-advection-diffusion-reaction-equation" title="Permalink to this headline">¶</a></h2>
-<p>Provided the equation is linear, meaning that the coefficients, nor the reaction term depend on the solution variable a time-stepping approach can be used to solve the equation. We will rearrange the last equation into the form of a linear system <span class="math">\(A\cdot x = d\)</span>. Firstly lets move all terms involving future time points the l.h.s,</p>
-<div class="math">
-\[w^{n+1} - \theta \tau F(w^{n+1}) = w^{n} + (1-\theta) F(w^{n+1})\]</div>
-<p>Replacing the <span class="math">\(F\)</span> terms with the full matrix expressions and factoring yields,</p>
-<div class="math">
-\[\underbrace{(I - \theta\tau M^{n+1})}_{A}\underbrace{w^{n+1}}_{x} = \underbrace{(I + (1-\theta)\tau M^{n})w^{n}}_{d}\]</div>
-<p>Time-stepping involves solving this equation iteratively. First the initial conditions <span class="math">\(w^0\)</span> is used to calculate the solution variable at the next point in time <span class="math">\(w^1\)</span>, then values of the solution variable are updated such that <span class="math">\(w^1\)</span> is used to calculate <span class="math">\(w^2\)</span>, and so on and so forth. This procedure is shown in the Figure below,</p>
-<div class="figure align-center">
-<a class="reference internal image-reference" href="_images/time_stepping_linear_advection_diffusion.png"><img alt="Time stepping the linear advection-diffusion equation." src="_images/time_stepping_linear_advection_diffusion.png" style="width: 600.0px; height: 450.0px;" /></a>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Parameters used for this simulation. <span class="math">\(a=1\)</span>, <span class="math">\(d=1\times 10^{-3}\)</span>, <span class="math">\(h=5 \times 10^{-3}\)</span>, <span class="math">\(\tau=5 \times 10^{-4}\)</span> with exponentially fitted discretisation. The initial and boundary conditions where, <span class="math">\(u(x,t_{0}) =sin(\pi x)^{100}\)</span> with <span class="math">\(u(x_1)=1\)</span> and <span class="math">\(u_x(x_J)=0\)</span>. The equation was time stepped for 400 iterations, the plots so the solution at times <span class="math">\(t=0,0.05,0.1,0.15,0.2\)</span>.</p>
-</div>
+<p>The <span class="math">\(r\)</span>-terms have be previously defined as the coefficients that result from the discretisation method. Note that the subscripts for the <span class="math">\(r\)</span>-terms have been dropped to simplify the notation, but they are functions of space. For example, terms in the first row should be calculated with <span class="math">\(j=1\)</span>, in the second with <span class="math">\(j=2\)</span> etc. Solving linear equations is discussed late in section XX.</p>
 <div class="section" id="aside-linear-interpolation-between-cell-centre-and-face-values">
 <span id="label-interpolation-aside"></span><h3>Aside: Linear interpolation between cell centre and face values<a class="headerlink" href="#aside-linear-interpolation-between-cell-centre-and-face-values" title="Permalink to this headline">¶</a></h3>
 <p>In general, linear interpolation between two points <span class="math">\((x_0, x_1)\)</span> can be used to find the value of a function at <span class="math">\(f(x)\)</span>,</p>

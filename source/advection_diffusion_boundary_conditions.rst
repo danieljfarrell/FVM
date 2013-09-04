@@ -1,12 +1,14 @@
 Boundary conditions for the advection-diffusion-reaction equation
 -----------------------------------------------------------------
 
-A well posed problem requires boundary conditions.
+The advection-diffusion-reaction equation is a particularly good equation to explore apply boundary conditions because it is a more general version of other equations. For example, the diffusion equation, the transport equation and the Poisson equation can all be recovered from this basic form. Moreover, by developing a general scheme for boundary conditions of the advection-reaction-diffusion equation we automatically get a system for imposing boundary conditions on all equations of a similar form.
 
 Robin boundary conditions (known flux)
 **************************************
 
-`Within the finite volume method Robin boundary (known flux) conditions are naturally resolved <http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method>`_. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell :math:`\Omega_1`,
+Robin specify a known *total flux* comprised of a diffusion and advection component. Note that in the diffusion equation limit (where :math:`a=0`) these boundary conditions reduce to Neumann boundary conditions.
+
+`Within the finite volume method Robin boundary conditions are naturally resolved <http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method>`_. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell :math:`\Omega_1`,
 
 .. figure:: img/boundary_cell_FVM.png
    :scale: 100 %
@@ -89,15 +91,20 @@ where,
 
 The following assumes time-invariant boundary conditions.
 
-General matrix form
-*******************
+General matrix form with a transient term
+*****************************************
 
-Writing the equation in the form,
+The semi-discretised advection-diffusion-reaction equation can be written in the form below using the :math:`\theta`-method,
 
 .. math::
     w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right) + \beta
 
-allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. A new matrix, :math:`\alpha` are vector, :math:`\beta` have been included. These used to incorporate the boundary conditions as discussed above, they have the form,
+where :math:`F(w)` contains a matrix :math:`M`, a vector of the solution variable :math:`w` and a vector of the reaction term :math:`r`,
+
+.. math::
+    F(w) = Mw + r
+
+We have introduced a new matrix, :math:`\alpha` and vector, :math:`\beta`. These are used to incorporate the boundary conditions, they have the form,
 
 .. math::
     \alpha & = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right) \\
@@ -140,3 +147,28 @@ Table showing coefficients which should be altered to apply either Robin or Diri
 +-------------------+--------------------------------------------------------------------------------------------------------------+---------------------+
 | :math:`\beta_J`   | :math:`-\frac{g_R(x_J)}{h_J}`                                                                                | :math:`0`           |
 +-------------------+--------------------------------------------------------------------------------------------------------------+---------------------+
+
+General matrix form without a transient term
+********************************************
+
+The boundary conditions scheme discussed above is only valid for initial value problems; problems where an initial vector of the solution variable :math:`w^0` is specified along with boundary conditions. PDEs of the advection-diffusion-reaction form that **do not** contain a time derivative are an important class of equations they are called *boundary value problems*, 
+
+.. math::
+    0 = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right) + \beta
+    
+Boundary value problems do not require initial conditions for the solution variable. For this type of equations we need to use a different general scheme to implement boundary condition values.
+
+The element of the :math:`M` matrix remain the same, however for Dirichlet boundary conditions the elements must be modified in for the :math:`\alpha` and :math:`\beta` terms,
+
++-------------------+----------------------------------------------------------------------------+---------------------------+
+|   Symbol          |                                         Robin                              | Dirichlet                 |
++===================+============================================================================+===========================+
+| :math:`\alpha_1`  | :math:`1`                                                                  | :math:`1`                 |
++-------------------+----------------------------------------------------------------------------+---------------------------+
+| :math:`\alpha_J`  | :math:`1`                                                                  | :math:`1`                 |
++-------------------+----------------------------------------------------------------------------+---------------------------+
+| :math:`\beta_1`   | :math:`\frac{g_R(x_1)}{h_1}`                                               | :math:`-r(x_1)- g_D(x_1)` |
++-------------------+----------------------------------------------------------------------------+---------------------------+
+| :math:`\beta_J`   | :math:`-\frac{g_R(x_J)}{h_J}`                                              | :math:`-r(x_J)- g_D(x_J)` |
++-------------------+----------------------------------------------------------------------------+---------------------------+
+

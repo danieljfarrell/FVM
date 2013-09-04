@@ -89,7 +89,7 @@ class CellVariable(np.ndarray):
 class AdvectionDiffusionModel(object):
     
     """A model for the advection-diffusion equation"""
-    def __init__(self, faces, a, d, discretisation="central"):
+    def __init__(self, faces, a, d, reaction=None, discretisation="central"):
         
         print "moo~"
         super(AdvectionDiffusionModel, self).__init__()
@@ -98,6 +98,10 @@ class AdvectionDiffusionModel(object):
         self.a = CellVariable(a, mesh=self.mesh)
         self.d = CellVariable(d, mesh=self.mesh)
         self.discretisation = discretisation
+        self.set_reaction_term(reaction)
+        
+        # Default value
+        self.has_transient = True
         
         # Check Peclet number
         import warnings
@@ -138,6 +142,16 @@ class AdvectionDiffusionModel(object):
     
     def CFL_condition(self, tau):
         return self.a * tau/ self.mesh.cell_widths
+    
+    def set_reaction_term(self, reaction_term):
+        """Warning the reaction term influences the boundary conditions values 
+        make sure that this is set _before_ setting the boundary conditions."""
+        self.reaction = np.zeros(self.mesh.J) if reaction_term is None else reaction_term
+        assert len(self.reaction) == self.mesh.J
+        
+    def set_has_transient(self, requires_transient_term):
+        """A flag that changes elements in the boundary conditions vecs/mats."""
+        self.has_transient = requires_transient_term
         
     def set_boundary_conditions(self, left_flux=None, right_flux=None, left_value=None, right_value=None ):
         """Make sure this function is used sensibly otherwise the matrix will be ill posed."""
@@ -198,8 +212,7 @@ class AdvectionDiffusionModel(object):
         locations = [(0,0), (0,1)]
         # values = ( rb(0, self.a, self.d, self.mesh ), 
         #            rc(0, self.a, self.d, self.mesh ) )
-        values = ( 0, 
-                  1 )
+        values = (1, 0 ) #BUG: these where set to (0, 1)
         return tuple([list(x) for x in zip(locations, values)])
         
     def _dirichlet_boundary_condition_matrix_elements_right(self):
@@ -212,8 +225,7 @@ class AdvectionDiffusionModel(object):
         locations = [(J-1,J-2), (J-1,J-1)]
         # values = ( ra(self.J-1, self.a, self.d, self.mesh ), 
         #            rb(self.J-1, self.a, self.d, self.mesh ) )
-        values = ( 0, 
-                   1 )
+        values = ( 0, 1 )
         return tuple([list(x) for x in zip(locations, values)])
         
     
@@ -221,28 +233,29 @@ class AdvectionDiffusionModel(object):
         # Index and boundary condition vector elements for Dirichlet conditions
         # NB these are always zero, unless BCs are time varying
         location = [0]
-        value = [0]
+        value =  [0] if self.has_transient else [-self.reaction[0] - self.left_value]
         return tuple([list(x) for x in zip(location, value)])
         
     def _dirichlet_boundary_condition_vector_elements_right(self):
         # Index and boundary condition vector elements for Dirichlet conditions
         # NB these are always zero, unless BCs are time varying
         location = [self.mesh.J-1]
-        value = [0]
+        value = [0] if self.has_transient else [-self.reaction[-1] - self.right_value]
         return tuple([list(x) for x in zip(location, value)])
     
     def alpha_matrix(self):
         """The alpha matrix is used to mask boundary conditions values for Dirichlet
         conditions. Otherwise for a fully Neumann (or Robin) system it is equal to 
         the identity matrix."""
-        a1 = 0 if self.left_flux is None else 1
-        aJ = 0 if self.left_flux is None else 1
+        a1 = 1 if self.left_value is None else 0 if self.has_transient else 1
+        aJ = 1 if self.right_value is None else 0 if self.has_transient else 1
         diagonals = np.ones(self.mesh.J)
         diagonals[0]  = a1
         diagonals[-1] = aJ
-        return sparse.diags(diagonals, 0)
+        offsets = (0,)
+        return sparse.diags((diagonals,), offsets)
     
-    def beta_vector(self):
+    def beta_vector(self, column_vector=False):
         """Returns the robin boundary condition vector."""
         b = np.zeros(self.mesh.J)
         
@@ -261,6 +274,9 @@ class AdvectionDiffusionModel(object):
         bcs = left_bc_elements + right_bc_elements
         for inx, value in bcs:
             b[inx] = value
+        
+        if column_vector:
+            return np.matrix(b).reshape((self.mesh.J,1))
         return b
         
     def coefficient_matrix(self):
@@ -308,8 +324,66 @@ class AdvectionDiffusionModel(object):
             A[inx] = value
         return dia_matrix(A)
 
+class PoissonEquation(AdvectionDiffusionModel):
+    """Poisson equation."""
+    def __init__(self, faces, permittivity, charge):
         
-if __name__ == '__main__':
+        # For the Poisson equation the dielectic constant is the diffusion
+        # coefficient, there is no advection term.
+        a = 0
+        d = permittivity
+        self.permittivity = permittivity
+        self.charge = charge
+        super(PoissonEquation, self).__init__(faces, a, d, 
+            discretisation="central")
+            
+
+def test_poisson_equation():
+    
+    cells = 200
+    faces = np.linspace(0,2,cells+1)
+    permittivity = 1
+    electron_valency = -1
+    electron_concentration = np.ones(cells)
+    charge = electron_concentration * electron_valency
+    
+    model = PoissonEquation(faces, permittivity, charge)
+    left_value = 0
+    right_flux = 0
+    model.set_boundary_conditions(left_value=left_value, right_flux=right_flux)
+    model.set_has_transient(False)
+    model.set_reaction_term(charge)
+    
+    M = model.coefficient_matrix()
+    alpha = model.alpha_matrix().todok()
+    beta = model.beta_vector(column_vector=True)
+    
+    # Modify for equation with out transient term
+    #alpha[0,0] = 1
+    #beta[0] = -charge[0] - left_value
+    
+    # alpha[-1,-1] = 1
+    # beta[-1] = -charge[-1] - right_value
+    print alpha.todense()
+    print beta
+    
+    rho = np.matrix(charge).reshape((cells,1))
+    #V = linalg.spsolve( alpha*(permittivity * M) + beta, -charge)
+    
+    V = linalg.spsolve( alpha*permittivity*M, -np.asarray(alpha*rho) - np.asarray(beta) )
+    
+    import pylab
+    x = model.mesh.cells
+    pylab.figure(1)
+    pylab.plot(x, charge)
+    pylab.figure(2)
+    pylab.plot(x, V, "--", label="Numerical approximation")
+    pylab.plot(x, x**2/2 - 2*x, "-", label="Analytical solution")
+    pylab.legend()
+    pylab.show()
+    
+    
+def test_advection_diffusion_equation():
     
     def geo_series(n, r, min_spacing=0.01):
         total = 0
@@ -441,6 +515,9 @@ if __name__ == '__main__':
     
     np.savetxt("data.txt", np.asarray(np.matrix(data).transpose()))
 
-
+if __name__ == '__main__':
+    #test_poisson_equation()
+    test_advection_diffusion_equation()
+    
 
     

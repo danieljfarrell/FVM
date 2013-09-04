@@ -60,7 +60,7 @@
   });
 </script>
     <link rel="top" title="FVM Docs 0.1 documentation" href="index.html" />
-    <link rel="next" title="Solving nonlinear equations" href="solving_nonlinear_equations.html" />
+    <link rel="next" title="Solving linear equations" href="solving_linear_equations.html" />
     <link rel="prev" title="The advection-diffusion-reaction equation" href="advection_diffusion.html" /> 
   </head>
   <body>
@@ -80,7 +80,7 @@
                 <a href="genindex.html" title="General Index" accesskey="I">index</a>
                 </li>
                 <li>
-                <a href="solving_nonlinear_equations.html" title="Solving nonlinear equations" accesskey="N">next</a>
+                <a href="solving_linear_equations.html" title="Solving linear equations" accesskey="N">next</a>
                 </li>
                 <li>
                 <a href="advection_diffusion.html" title="The advection-diffusion-reaction equation" accesskey="P">previous</a>
@@ -108,7 +108,8 @@
 <li><a class="reference internal" href="#">Boundary conditions for the advection-diffusion-reaction equation</a><ul>
 <li><a class="reference internal" href="#robin-boundary-conditions-known-flux">Robin boundary conditions (known flux)</a></li>
 <li><a class="reference internal" href="#dirichlet-boundary-conditions-known-value">Dirichlet boundary conditions (known value)</a></li>
-<li><a class="reference internal" href="#general-matrix-form">General matrix form</a></li>
+<li><a class="reference internal" href="#general-matrix-form-with-a-transient-term">General matrix form with a transient term</a></li>
+<li><a class="reference internal" href="#general-matrix-form-without-a-transient-term">General matrix form without a transient term</a></li>
 </ul>
 </li>
 </ul>
@@ -117,8 +118,8 @@
   <p class="topless"><a href="advection_diffusion.html"
                         title="previous chapter">The advection-diffusion-reaction equation</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="solving_nonlinear_equations.html"
-                        title="next chapter">Solving nonlinear equations</a></p>
+  <p class="topless"><a href="solving_linear_equations.html"
+                        title="next chapter">Solving linear equations</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/advection_diffusion_boundary_conditions.txt"
@@ -153,7 +154,8 @@
 <li><a class="reference internal" href="#">Boundary conditions for the advection-diffusion-reaction equation</a><ul>
 <li><a class="reference internal" href="#robin-boundary-conditions-known-flux">Robin boundary conditions (known flux)</a></li>
 <li><a class="reference internal" href="#dirichlet-boundary-conditions-known-value">Dirichlet boundary conditions (known value)</a></li>
-<li><a class="reference internal" href="#general-matrix-form">General matrix form</a></li>
+<li><a class="reference internal" href="#general-matrix-form-with-a-transient-term">General matrix form with a transient term</a></li>
+<li><a class="reference internal" href="#general-matrix-form-without-a-transient-term">General matrix form without a transient term</a></li>
 </ul>
 </li>
 </ul>
@@ -162,8 +164,8 @@
   <p class="topless"><a href="advection_diffusion.html"
                         title="previous chapter">The advection-diffusion-reaction equation</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="solving_nonlinear_equations.html"
-                        title="next chapter">Solving nonlinear equations</a></p>
+  <p class="topless"><a href="solving_linear_equations.html"
+                        title="next chapter">Solving linear equations</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/advection_diffusion_boundary_conditions.txt"
@@ -195,10 +197,11 @@
                   
   <div class="section" id="boundary-conditions-for-the-advection-diffusion-reaction-equation">
 <h1>Boundary conditions for the advection-diffusion-reaction equation<a class="headerlink" href="#boundary-conditions-for-the-advection-diffusion-reaction-equation" title="Permalink to this headline">¶</a></h1>
-<p>A well posed problem requires boundary conditions.</p>
+<p>The advection-diffusion-reaction equation is a particularly good equation to explore apply boundary conditions because it is a more general version of other equations. For example, the diffusion equation, the transport equation and the Poisson equation can all be recovered from this basic form. Moreover, by developing a general scheme for boundary conditions of the advection-reaction-diffusion equation we automatically get a system for imposing boundary conditions on all equations of a similar form.</p>
 <div class="section" id="robin-boundary-conditions-known-flux">
 <h2>Robin boundary conditions (known flux)<a class="headerlink" href="#robin-boundary-conditions-known-flux" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method">Within the finite volume method Robin boundary (known flux) conditions are naturally resolved</a>. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell <span class="math">\(\Omega_1\)</span>,</p>
+<p>Robin specify a known <em>total flux</em> comprised of a diffusion and advection component. Note that in the diffusion equation limit (where <span class="math">\(a=0\)</span>) these boundary conditions reduce to Neumann boundary conditions.</p>
+<p><a class="reference external" href="http://scicomp.stackexchange.com/questions/7650/how-should-boundary-conditions-be-applied-when-using-finite-volume-method">Within the finite volume method Robin boundary conditions are naturally resolved</a>. This means that there is no need for interpolation or ghost point substitution (although these approaches remain possible) to include the boundary conditions because the flux at the boundary appears naturally in the semi-discretised equation. For example consider the semi-discretised equation evaluated at the boundary cell <span class="math">\(\Omega_1\)</span>,</p>
 <div class="figure align-center">
 <a class="reference internal image-reference" href="_images/boundary_cell_FVM.png"><img alt="Finite volume boundary cell at the left hand side." src="_images/boundary_cell_FVM.png" style="width: 333.0px; height: 192.0px;" /></a>
 <p class="caption">Finite volume boundary cell at the left hand side.</p>
@@ -252,12 +255,15 @@
 \Delta g_D(x_J) = g_D(x_J, t_{n+1}) - g_D(x_J, t_{n})\end{split}\]</div>
 <p>The following assumes time-invariant boundary conditions.</p>
 </div>
-<div class="section" id="general-matrix-form">
-<h2>General matrix form<a class="headerlink" href="#general-matrix-form" title="Permalink to this headline">¶</a></h2>
-<p>Writing the equation in the form,</p>
+<div class="section" id="general-matrix-form-with-a-transient-term">
+<h2>General matrix form with a transient term<a class="headerlink" href="#general-matrix-form-with-a-transient-term" title="Permalink to this headline">¶</a></h2>
+<p>The semi-discretised advection-diffusion-reaction equation can be written in the form below using the <span class="math">\(\theta\)</span>-method,</p>
 <div class="math">
 \[w^{\prime} = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right) + \beta\]</div>
-<p>allows a nice general approach where either type of boundary condition can be enforced simply by changing a few variables. A new matrix, <span class="math">\(\alpha\)</span> are vector, <span class="math">\(\beta\)</span> have been included. These used to incorporate the boundary conditions as discussed above, they have the form,</p>
+<p>where <span class="math">\(F(w)\)</span> contains a matrix <span class="math">\(M\)</span>, a vector of the solution variable <span class="math">\(w\)</span> and a vector of the reaction term <span class="math">\(r\)</span>,</p>
+<div class="math">
+\[F(w) = Mw + r\]</div>
+<p>We have introduced a new matrix, <span class="math">\(\alpha\)</span> and vector, <span class="math">\(\beta\)</span>. These are used to incorporate the boundary conditions, they have the form,</p>
 <div class="math">
 \[\begin{split}\alpha &amp; = \text{diag}\left( \alpha_1, 1, \cdots, 1, \alpha_J \right) \\
 \beta  &amp; = \left( \beta_1, 0, \cdots, 0, \beta_J \right)\end{split}\]</div>
@@ -322,6 +328,45 @@
 </tbody>
 </table>
 </div>
+<div class="section" id="general-matrix-form-without-a-transient-term">
+<h2>General matrix form without a transient term<a class="headerlink" href="#general-matrix-form-without-a-transient-term" title="Permalink to this headline">¶</a></h2>
+<p>The boundary conditions scheme discussed above is only valid for initial value problems; problems where an initial vector of the solution variable <span class="math">\(w^0\)</span> is specified along with boundary conditions. PDEs of the advection-diffusion-reaction form that <strong>do not</strong> contain a time derivative are an important class of equations they are called <em>boundary value problems</em>,</p>
+<div class="math">
+\[0 = \alpha\left( \theta F(w_j^{n+1}) + (1-\theta)F(w_j^{n}) \right) + \beta\]</div>
+<p>Boundary value problems do not require initial conditions for the solution variable. For this type of equations we need to use a different general scheme to implement boundary condition values.</p>
+<p>The element of the <span class="math">\(M\)</span> matrix remain the same, however for Dirichlet boundary conditions the elements must be modified in for the <span class="math">\(\alpha\)</span> and <span class="math">\(\beta\)</span> terms,</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="62%" />
+<col width="22%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Symbol</th>
+<th class="head">Robin</th>
+<th class="head">Dirichlet</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\alpha_1\)</span></td>
+<td><span class="math">\(1\)</span></td>
+<td><span class="math">\(1\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\alpha_J\)</span></td>
+<td><span class="math">\(1\)</span></td>
+<td><span class="math">\(1\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\beta_1\)</span></td>
+<td><span class="math">\(\frac{g_R(x_1)}{h_1}\)</span></td>
+<td><span class="math">\(-r(x_1)- g_D(x_1)\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\beta_J\)</span></td>
+<td><span class="math">\(-\frac{g_R(x_J)}{h_J}\)</span></td>
+<td><span class="math">\(-r(x_J)- g_D(x_J)\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 
@@ -341,7 +386,7 @@
     <ul class="nav pull-right">
       
         <li><a href="genindex.html" title="General Index" >index</a></li>
-        <li><a href="solving_nonlinear_equations.html" title="Solving nonlinear equations" >next</a></li>
+        <li><a href="solving_linear_equations.html" title="Solving linear equations" >next</a></li>
         <li><a href="advection_diffusion.html" title="The advection-diffusion-reaction equation" >previous</a></li>
         <li><a href="index.html">FVM Docs 0.1 documentation</a></li> 
       

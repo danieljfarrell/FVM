@@ -12,6 +12,13 @@ gaussian = lambda z, height, position, hwhm: height * np.exp(-np.log(2) * ((z - 
 H = lambda z: 0.5 * (1 - np.sign(z))
 TH = lambda x, sigma, mu: np.where( x>(mu-sigma), 1, 0) * np.where(x<(mu+sigma), 1, 0)
 
+def close(a, b, atol=1e-12, rtol=1e-5):
+    return np.abs(a - b) <= (atol + rtol * np.abs(b))
+
+# test = np.array([1e-100,1e-50,1e-25,1e-12,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5,1e-4,1e-4,1e-3,1e-2,1e-1,1e-0])
+# print close(test, 0)
+# exit(1)
+
 def check_index_within_bounds(i, min_i, max_i):
     """Checks that the index specified (can be number or an iterable) is within the given range."""
     success = np.all((i>=min_i)*(i<=max_i))
@@ -121,16 +128,22 @@ class AdvectionDiffusionModel(object):
         mu = self.peclet_number()
         #print "peclet number", mu
         if self.discretisation == "exponential":
-            # We need to compute the numerator and denominator separately because
-            # mathmatically we expect inf/inf = 1 (in the limit mu->oo), however
-            # computationally inf/inf = nan
-            numerator = np.exp(mu) + 1
-            denominator = np.exp(mu) - 1
-            ratio = numerator/denominator               # Here catch the cases where
-            ratio[np.where(np.isinf(numerator))] = 1    # we had inf/inf and replaced
-            ratio[np.where(np.isinf(denominator))] = 1  # with the limiting value.
-            kappa = ratio - 2/mu;                       # One last problem to fix, here
-            kappa[np.where(mu==0.0)] = 0.0              # catch divide by zero values.
+            
+            # We need to evaluate the limit for the exp. fitting function,
+            # but catch the limiting cases,
+            #   limit (mu-->(+/-)oo) (exp(mu)+1)/(exp(mu)-1) - 2/mu = (+/-)1
+            #   limit (mu-->0) (exp(mu)+1)/(exp(mu)-1) - 2/mu = 0
+            # because numerically this generates infinities and nans.
+            # NB. We _must_ use the expm1 ~ exp(x)-1 function here
+            # because otherwise exp(x)-1 = 0 _before_ small numbers
+            # reach machine precision!
+            kappa = (np.exp(mu) + 1)/np.expm1(mu) - 2/mu;
+            kappa[np.where(close(mu,0.0))] = 0.0
+            kappa[np.where(np.isposinf(kappa))] = 1.0
+            kappa[np.where(np.isneginf(kappa))] = -1.0
+            nan_indx = np.where(np.isnan(kappa))
+            kappa[nan_indx] = np.sign(mu[nan_indx])
+            assert np.all(np.isfinite(kappa)), "Error calculating kappa for exponential fitting, non-finite values calculated %s" % (str(kappa),)
             
         elif self.discretisation == "upwind":
             kappa_neg = np.where(self.a<0,-1,0)
@@ -140,8 +153,8 @@ class AdvectionDiffusionModel(object):
             kappa = np.zeros(self.mesh.J)
         else:
             print "Please set `discretisation` to one of the following: `upwind`, `central` or `exponential`."
-        #print kappa
-        assert (np.min(kappa) >= -1.0) and (np.max(kappa) <= 1.0), "kappa for adaptive upwinding does not have a sensible value for all cells."
+        
+        assert (np.min(kappa) >= -1.0) and (np.max(kappa) <= 1.0), "kappa for adaptive upwinding does not have a sensible value for all cells %s" % (str(kappa),)
         return kappa
     
     def modified_diffusion_coefficient_for_adaptive_upwinding(self, kappa):

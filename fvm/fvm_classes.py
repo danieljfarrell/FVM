@@ -4,6 +4,7 @@ import numpy as np
 from scipy import sparse
 from scipy.sparse import linalg
 from scipy.sparse import dia_matrix
+import warnings
 np.random.seed(seed=1)
 
 # Supporting functions
@@ -95,50 +96,67 @@ class AdvectionDiffusionModel(object):
         super(AdvectionDiffusionModel, self).__init__()
         
         self.mesh = Mesh(faces)
+        self.d0 = CellVariable(d, mesh=self.mesh)           # Unmodifed diffusion coefficient
         self.a = CellVariable(a, mesh=self.mesh)
-        self.d = CellVariable(d, mesh=self.mesh)
         self.discretisation = discretisation
         self.set_reaction_term(reaction)
         
         # Default value
         self.has_transient = True
         
-        # Check Peclet number
-        import warnings
-        mu = self.peclet_number()
-        if np.max(np.abs(mu)) >= 1.5 and np.max(np.abs(mu)) < 2.0:
-            warnings.warn("\n\nThe Peclet number is %g, this is getting close to the limit of mod 2.")
-        elif np.max(np.abs(mu)) > 2:
-            warnings.warn("\n\nThe Peclet number (%g) has exceeded the maximum value of mod 2 for the central discretisation scheme." % (np.max(mu),) )
+        # Artificially modify the diffusion coefficient to introduce adpative discretisation
+        self.kappa = self.kappa_for_adpative_upwinding()
+        self.d = CellVariable(self.modified_diffusion_coefficient_for_adaptive_upwinding(self.kappa), mesh=self.mesh)
+        print "Using kappa:\n", "min =", np.min(self.kappa), "   max =", np.max(self.kappa)
+    
+    def update_velocity(self, new_velocity):
+        """When the velocity is updated we need to recalculate 
+        the adaptive upwind scheme."""
+        self.a = CellVariable(new_velocity, mesh=self.mesh)
+        self.kappa = self.kappa_for_adpative_upwinding()
+        self.d = CellVariable(self.modified_diffusion_coefficient_for_adaptive_upwinding(self.kappa), mesh=self.mesh)
         
-        # # Check CFL condition
-        # CFL = self.CFL_condition()
-        # if np.max(np.abs(CFL)) > 0.5 and np.max(np.abs(CFL)) < 1.0:
-        #     warnings.warn("\n\nThe CFL condition value is %g, it is getting close to the upper limit." % (np.max(CFL),) )
-        # elif np.max(np.abs(CFL)) > 1:
-        #     warnings.warn("\n\nThe CFL condition value is %g, and has gone above the upper limit." % (np.max(CFL),) )
+    def kappa_for_adpative_upwinding(self):
+        
+        mu = self.peclet_number()
+        #print "peclet number", mu
+        if self.discretisation == "exponential":
+            # We need to compute the numerator and denominator separately because
+            # mathmatically we expect inf/inf = 1 (in the limit mu->oo), however
+            # computationally inf/inf = nan
+            numerator = np.exp(mu) + 1
+            denominator = np.exp(mu) - 1
+            ratio = numerator/denominator               # Here catch the cases where
+            ratio[np.where(np.isinf(numerator))] = 1    # we had inf/inf and replaced
+            ratio[np.where(np.isinf(denominator))] = 1  # with the limiting value.
+            kappa = ratio - 2/mu;                       # One last problem to fix, here
+            kappa[np.where(mu==0.0)] = 0.0              # catch divide by zero values.
             
-        if discretisation == "exponential":
-            self.kappa = (np.exp(mu) + 1)/(np.exp(mu) - 1) - 2/mu;
-            self.kappa[np.where(mu==0.0)] = 0
-            self.kappa[np.where(np.isposinf(mu))] = 1
-            self.kappa[np.where(np.isneginf(mu))] = -1
-        elif discretisation == "upwind":
+        elif self.discretisation == "upwind":
             kappa_neg = np.where(self.a<0,-1,0)
             kappa_pos = np.where(self.a>0,1,0)
-            self.kappa = kappa_neg + kappa_pos
-        elif discretisation == "central":
-            self.kappa = np.zeros(self.mesh.J)
+            kappa = kappa_neg + kappa_pos
+        elif self.discretisation == "central":
+            kappa = np.zeros(self.mesh.J)
         else:
             print "Please set `discretisation` to one of the following: `upwind`, `central` or `exponential`."
-        
-        # Artificially modify the diffusion coefficient to introduce adpative discretisation
-        self.d = self.d + 0.5 * self.a * self.mesh.cell_widths * self.kappa
-        print "Using kappa", np.min(self.kappa), np.max(self.kappa)
-        print self.kappa
+        #print kappa
+        assert (np.min(kappa) >= -1.0) and (np.max(kappa) <= 1.0), "kappa for adaptive upwinding does not have a sensible value for all cells."
+        return kappa
     
+    def modified_diffusion_coefficient_for_adaptive_upwinding(self, kappa):
+        return self.d0 + 0.5 * self.a * self.mesh.cell_widths * kappa
+        
     def peclet_number(self):
-        return self.a * self.mesh.cell_widths / self.d
+        
+        mu = self.a * self.mesh.cell_widths / self.d0
+        if self.discretisation == "central":
+            if np.max(np.abs(mu)) >= 1.5 and np.max(np.abs(mu)) < 2.0:
+                warnings.warn("\n\nThe Peclet number is %g, this is getting close to the limit of mod 2.")
+            elif np.max(np.abs(mu)) > 2:
+                warnings.warn("\n\nThe Peclet number (%g) has exceeded the maximum value of mod 2 for the central discretisation scheme. Suggest use change to upwind or an exponentially fitted discretisation." % (np.max(mu),) )
+            
+        return mu
     
     def CFL_condition(self, tau):
         return self.a * tau/ self.mesh.cell_widths
@@ -364,8 +382,6 @@ def test_poisson_equation():
     
     # alpha[-1,-1] = 1
     # beta[-1] = -charge[-1] - right_value
-    print alpha.todense()
-    print beta
     
     rho = np.matrix(charge).reshape((cells,1))
     #V = linalg.spsolve( alpha*(permittivity * M) + beta, -charge)
@@ -375,8 +391,6 @@ def test_poisson_equation():
     import pylab
     x = model.mesh.cells
     pylab.figure(1)
-    pylab.plot(x, charge)
-    pylab.figure(2)
     pylab.plot(x, V, "--", label="Numerical approximation")
     pylab.plot(x, x**2/2 - 2*x, "-", label="Analytical solution")
     pylab.legend()
@@ -478,16 +492,25 @@ def test_advection_diffusion_equation():
     with writer.saving(fig, "fvm_advection_diffusion_1.mp4", 300):
         
         data = [mesh.cells]
-        for i in range(401):
+        for i in range(2000):
             #w = linalg.spsolve(A.tocsc(), M * w + s)
             d = (I + k*(1-theta)*alpha*M)*w + beta
             w = linalg.spsolve(A, d)
-        
+            
+            # # Change velocity field sign if half way... will probably break!
+            # if i > 300:
+            #     model.update_velocity(-10*a)
+            #     M = model.coefficient_matrix()
+            #     alpha = model.alpha_matrix()
+            #     beta  = model.beta_vector()
+            #     d = (I + k*(1-theta)*alpha*M)*w + beta
+                
+                
             if  i == 0:
                 l1.set_data(mesh.cells,w_init)
                 writer.grab_frame()
             
-            if i % 50 == 0 or i == 0:
+            if i % 10 == 0 or i == 0:
                 l1.set_data(mesh.cells,w)
                 #l0.set_data(analytical_x, analytical_solution)
                 area = np.sum(w * mesh.cell_widths)
@@ -518,6 +541,6 @@ def test_advection_diffusion_equation():
 if __name__ == '__main__':
     #test_poisson_equation()
     test_advection_diffusion_equation()
-    
+    pass
 
     

@@ -408,7 +408,150 @@ def test_poisson_equation():
     pylab.plot(x, x**2/2 - 2*x, "-", label="Analytical solution")
     pylab.legend()
     pylab.show()
+
+def test_poisson_equation_with_step_charge():
     
+    cells = 200
+    faces = np.linspace(-10,10,cells+1)
+    mesh = Mesh(faces)
+    x = mesh.cells
+    print x
+    
+    # Constants
+    permittivity = 1
+    q = 1
+    
+    # Species valency
+    electron_valency = -1
+    hole_valency = 1
+    idonor_valency = 1
+    iacceptor_valency = -1
+    
+    # Constant spatial concentrators
+    electron_concentration = 1e-6 * 1e6 # m^-3
+    idonor_concentration = electron_concentration
+    hole_concentration = 1e-6 * 1e6 # m^-3
+    iacceptor_concentration = hole_concentration
+    
+    # Spatial masks
+    electron_mask = np.where((x>1), 1, 0)
+    hole_mask = np.where((x<-1), 1, 0)
+    pside_mask = np.where((x<=0), 1, 0)
+    nside_mask = np.where((x>0), 1, 0)
+    
+    # Build charge profile
+    charge = np.zeros(len(x))
+    charge += q * electron_valency * electron_mask * electron_concentration
+    charge += q * hole_valency * hole_mask * hole_concentration
+    charge += q * idonor_valency * nside_mask * idonor_concentration
+    charge += q * iacceptor_valency * pside_mask * iacceptor_concentration
+    
+    model = PoissonEquation(faces, permittivity, charge)
+    left_value = 0
+    right_flux = 0
+    model.set_boundary_conditions(left_value=left_value, right_flux=right_flux)
+    model.set_has_transient(False)
+    model.set_reaction_term(charge)
+    
+    M = model.coefficient_matrix()
+    alpha = model.alpha_matrix().todok()
+    beta = model.beta_vector(column_vector=True)
+    
+    # Modify for equation with out transient term
+    #alpha[0,0] = 1
+    #beta[0] = -charge[0] - left_value
+    
+    # alpha[-1,-1] = 1
+    # beta[-1] = -charge[-1] - right_value
+    
+    rho = np.matrix(charge).reshape((cells,1))
+    #V = linalg.spsolve( alpha*(permittivity * M) + beta, -charge)
+    
+    V = linalg.spsolve( alpha*permittivity*M, -np.asarray(alpha*rho) - np.asarray(beta) )
+    
+    import pylab
+    x = model.mesh.cells
+    pylab.figure(1)
+    pylab.plot(x, V, "-", label="Numerical approximation")
+    pylab.plot(x, charge, "--", color=pylab.cm.Greys(0.5), label="Charge profile")
+    pylab.legend(loc="upper left", bbox_to_anchor=(0,1))
+    pylab.show()
+
+def test_poisson_equation_with_step_charge_real_units():
+    
+    # Constants
+    permittivity = 8.854e-12 * 12.9         # F / m
+    from solcore.base.constants import q    # C
+    from solcore import materials
+    from solcore.materials import GaAs
+    from solcore.materials.occupancy import bulk
+    from solcore.base.units import si, asUnit, siUnits
+    
+    acceptors=si("1e16cm-3")
+    donors=si("1e16cm-3")
+    ptype = GaAs(T=300, Na=acceptors )
+    ntype = GaAs(T=300, Nd=donors )
+    Efp = bulk.fermi_level_approx(ptype)
+    Efn = bulk.fermi_level_approx(ntype)
+    Vbi = abs(Efp/q - Efn/q)
+    epsilon = ptype.dielectric_constant
+    depletion_width = np.sqrt(2 * epsilon / q * (1/acceptors + 1/donors) * Vbi )
+    dep = depletion_width
+    
+    cells = 2000
+    faces = np.linspace(-dep/2-1e-6,dep/2+1e-6,cells+1)
+    mesh = Mesh(faces)
+    x = mesh.cells
+    print x
+    
+    # Species valency
+    electron_valency = -1
+    hole_valency = 1
+    idonor_valency = 1
+    iacceptor_valency = -1
+    
+    # Constant spatial concentrators
+    electron_concentration = donors
+    idonor_concentration = donors
+    hole_concentration = acceptors
+    iacceptor_concentration = acceptors
+    
+    # Spatial masks
+    electron_mask = np.where((x>dep/2), 1, 0)
+    hole_mask = np.where((x<-dep/2), 1, 0)
+    pside_mask = np.where((x<=0), 1, 0)
+    nside_mask = np.where((x>0), 1, 0)
+    
+    # Build charge profile
+    charge = np.zeros(len(x))
+    charge += q * electron_valency * electron_mask * electron_concentration
+    charge += q * hole_valency * hole_mask * hole_concentration
+    charge += q * idonor_valency * nside_mask * idonor_concentration
+    charge += q * iacceptor_valency * pside_mask * iacceptor_concentration
+    
+    model = PoissonEquation(faces, permittivity, charge)
+    left_value = 0
+    right_flux = 0
+    model.set_boundary_conditions(left_value=left_value, right_flux=right_flux)
+    model.set_has_transient(False)
+    model.set_reaction_term(charge)
+    
+    M = model.coefficient_matrix()
+    alpha = model.alpha_matrix().todok()
+    beta = model.beta_vector(column_vector=True)
+    rho = np.matrix(charge).reshape((cells,1))
+    V = linalg.spsolve( alpha*M, -np.asarray(alpha*rho) - np.asarray(beta) )
+    
+    import matplotlib.pyplot as plt
+    x = model.mesh.cells
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.plot(asUnit(x, "um"), V, "-")
+    ax1.set_ylabel('Potential (V)', color='b')
+    ax1.set_xlabel('Distance (microns)')
+    ax2.plot(asUnit(x, "um"), asUnit(np.gradient(-V, np.gradient(x)),"kV cm-1"), "--", color=plt.cm.Greys(1.0), label="Charge profile")
+    ax2.set_ylabel('Electric field (kV/cm)', color=plt.cm.Greys(1.0))
+    plt.show()
     
 def test_advection_diffusion_equation():
     
@@ -553,7 +696,9 @@ def test_advection_diffusion_equation():
 
 if __name__ == '__main__':
     #test_poisson_equation()
-    test_advection_diffusion_equation()
+    #test_poisson_equation_with_step_charge()
+    test_poisson_equation_with_step_charge_real_units()
+    #test_advection_diffusion_equation()
     pass
 
     

@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4647888.svg)](https://doi.org/10.5281/zenodo.4647888)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4647887.svg)](https://doi.org/10.5281/zenodo.4647887)
 
 Solving the advection-diffusion equation on an non-uniform mesh with the finite-volume method
 *********************************************************************************************

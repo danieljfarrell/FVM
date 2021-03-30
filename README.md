@@ -1,5 +1,8 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4647888.svg)](https://doi.org/10.5281/zenodo.4647888)
+
 Solving the advection-diffusion equation on an non-uniform mesh with the finite-volume method
 *********************************************************************************************
+
 
 This repo is basically my notes on learning the finite-volume method when applied to the advection-diffusion equation. The methods are based on the the book by W. Hundsdorfer and J. G. Verwer, [Numerical solutions of time-dependent advection-diffusion reaction equations](http://books.google.co.uk/books?isbn=3540034404).
 
